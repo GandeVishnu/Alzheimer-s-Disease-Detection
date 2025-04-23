@@ -13,7 +13,7 @@ from datetime import datetime
 
 
 DB_FILE = "User_Credentials.db"
-MODEL_PATH = "F:\ADNI_5_FINAL_FOLDER\20_04_2025_ADNI_best_model.keras"
+MODEL_PATH = "/workspaces/Alzheimer-s-Disease-Detection/20_04_2025_ADNI_best_model.keras"
 IMG_SIZE = (224, 224)
 class_labels = ['Final AD JPEG', 'Final CN JPEG', 'Final EMCI JPEG', 'Final LMCI JPEG', 'Final MCI JPEG']
 
