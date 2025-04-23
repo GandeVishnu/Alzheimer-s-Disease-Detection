@@ -2,9 +2,9 @@ import streamlit as st
 import sqlite3
 import os
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras.models import load_model
-from tensorflow.keras.applications.efficientnet import preprocess_input 
+import tensorflow as tf # type: ignore
+from tensorflow.keras.models import load_model # type: ignore
+from tensorflow.keras.applications.efficientnet import preprocess_input # type: ignore
 from PIL import Image
 import time
 from fpdf import FPDF
