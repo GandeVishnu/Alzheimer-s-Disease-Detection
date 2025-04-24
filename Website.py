@@ -377,8 +377,6 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
 def main():
     if "page" not in st.session_state:
         st.session_state["page"] = "Home"
-        st.toast("✅ Redirecting to Home Page...", icon="✅")
-        time.sleep(0.5)         
 
     pages = {"Home": home_page, "Login": login_page, "Signup": signup_page, "guidelines": guidelines_page, "scan": scan_page,   "application_form": application_form_page }
     pages[st.session_state["page"]]()
