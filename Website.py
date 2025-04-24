@@ -2,18 +2,18 @@ import streamlit as st
 import sqlite3
 import os
 import numpy as np
-import tensorflow as tf # type: ignore
+import tensorflow as tf
 from tensorflow.keras.models import load_model # type: ignore
-from tensorflow.keras.applications.efficientnet import preprocess_input # type: ignore
+from tensorflow.keras.applications.efficientnet import preprocess_input  # type: ignore
 from PIL import Image
-import time
 from fpdf import FPDF
 import base64
+import time
 from datetime import datetime
 
 
 DB_FILE = "User_Credentials.db"
-MODEL_PATH = "20_04_2025_ADNI_best_model.keras"
+MODEL_PATH = r"F:\ADNI_5_FINAL_FOLDER\20_04_2025_ADNI_best_model.keras"
 IMG_SIZE = (224, 224)
 class_labels = ['Final AD JPEG', 'Final CN JPEG', 'Final EMCI JPEG', 'Final LMCI JPEG', 'Final MCI JPEG']
 
@@ -56,6 +56,10 @@ def add_responsive_styles():
 
     st.markdown(f"""
         <style>
+            input, textarea {{
+                caret-color: #000 !important;
+                color: #000 !important;
+            }} 
             /* Set the background color */
             .stApp {{
                 background-color: {bg_color} !important;
@@ -69,7 +73,6 @@ def add_responsive_styles():
                 font-size: 16px !important;
             }}
 
-            /* Customize title text */
             .title-text {{
                 font-size: 50px;
                 font-weight: bold;
@@ -127,6 +130,9 @@ def predict(image):
     confidence = predictions[predicted_class] * 100
     return class_labels[predicted_class], confidence, predictions
 
+
+
+
 def home_page():
     add_responsive_styles()
     st.markdown('<div class="title-text">🧠 Alzheimer\'s Disease Prediction</div>', unsafe_allow_html=True)
@@ -136,12 +142,15 @@ def home_page():
     with col1:
         if st.button("Login"):
             st.session_state["page"] = "Login"
-            st.toast("✅ Moving to Login Page", icon="✅")            
+            st.toast("✅ Moving to Login Page", icon="✅")   
+            time.sleep(0.5) 
             st.rerun()
+
     with col2:
         if st.button("Signup"):
             st.session_state["page"] = "Signup"
-            st.toast("✅ Moving to Signup Page", icon="✅")            
+            st.toast("✅ Moving to Signup Page", icon="✅")  
+            time.sleep(0.5)                   
             st.rerun()
 
 def login_page():
@@ -154,7 +163,7 @@ def login_page():
     if st.button("Login"):
         if email in users and users[email]["password"] == password:
             st.toast("✅ Login Successful! Redirecting...", icon="✅")
-            time.sleep(1)  
+            time.sleep(0.5)  
             st.session_state["Name"] = users[email]["name"]
             st.session_state["page"] = "guidelines"
             st.rerun()
@@ -163,6 +172,8 @@ def login_page():
     
     if st.button("Back to Home"):
         st.session_state["page"] = "Home"
+        st.toast("✅ Back to Home Page", icon="✅")
+        time.sleep(0.5)
         st.rerun()
 
 def signup_page():
@@ -185,12 +196,14 @@ def signup_page():
         else:
             save_user(email, name, password)
             st.toast("✅ Signup Successful! Redirecting to Home...", icon="✅")
-            time.sleep(1)  
+            time.sleep(0.5)  
             st.session_state["page"] = "Home"
             st.rerun()
 
     if st.button("Back to Home"):
         st.session_state["page"] = "Home"
+        st.toast("✅ Back to Home Page", icon="✅")
+        time.sleep(0.5)  
         st.rerun()
 
 def guidelines_page():
@@ -201,24 +214,29 @@ def guidelines_page():
     <p style="color: black;">Alzheimer's disease is a progressive brain disorder causing memory loss and cognitive decline.</p>
 
     <ul>
-        <li><span style="color:#0B3D91; font-weight:bold;">Non-Demented:</span> 
-            <span style="color:#000000;">Early signs like slight memory lapses and difficulty in recalling words.</span>
+        <li><span style="color:#0B3D91; font-weight:bold;">Final CN JPEG:</span> 
+            <span style="color:#000000;">Cognitively Normal – No cognitive impairment.</span>
         </li>
-        <li><span style="color:#0B3D91; font-weight:bold;">Mild Demented:</span> 
-            <span style="color:#000000;">Noticeable memory loss, difficulty in recognizing familiar people, and impaired problem-solving skills.</span>
+        <li><span style="color:#0B3D91; font-weight:bold;">Final EMCI JPEG:</span> 
+            <span style="color:#000000;">Early Mild Cognitive Impairment – Very mild symptoms, subtle memory lapses.</span>
         </li>
-        <li><span style="color:#0B3D91; font-weight:bold;">Moderate Demented:</span> 
-            <span style="color:#000000;">Severe cognitive decline, loss of independence, confusion, and difficulty in basic activities like speaking and walking.</span>
+        <li><span style="color:#0B3D91; font-weight:bold;">Final MCI JPEG:</span> 
+            <span style="color:#000000;">Mild Cognitive Impairment – General MCI, includes both early and late stages.</span>
         </li>
-        <li><span style="color:#0B3D91; font-weight:bold;">Very Mild Demented:</span> 
-            <span style="color:#000000;">Increased forgetfulness, trouble with organization, and minor confusion in daily tasks.</span>
+        <li><span style="color:#0B3D91; font-weight:bold;">Final LMCI JPEG:</span> 
+            <span style="color:#000000;">Late Mild Cognitive Impairment – More severe than EMCI, close to AD onset.</span>
         </li>
+        <li><span style="color:#0B3D91; font-weight:bold;">Final AD JPEG:</span> 
+            <span style="color:#000000;">Alzheimer’s Disease – Advanced cognitive decline, significant memory and behavioral changes.</span>
+        </li>        
     </ul>
        
     """, unsafe_allow_html=True)
     
     if st.button("Proceed to Scan"):
         st.session_state["page"] = "scan"
+        st.toast("✅ Redirecting to Scan Page...", icon="✅")
+        time.sleep(0.5)         
         st.rerun()
 
 def scan_page():
@@ -228,7 +246,7 @@ def scan_page():
 
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
-        st.image(image, caption='Uploaded Image', use_container_width=True)
+        st.image(image, caption='Uploaded Image', use_column_width=True)
         predicted_label, confidence, predictions = predict(image)
         st.markdown(f"### 🟢 Prediction: {predicted_label}")
         st.markdown(f"### 📊 Confidence: {confidence:.2f}%")
@@ -242,16 +260,22 @@ def scan_page():
     with col1:
         if st.button("⬅ Back"):
             st.session_state["page"] = "guidelines"
+            st.toast("✅ Back to Guidelines Page...", icon="✅")
+            time.sleep(0.5)  
             st.rerun()
 
     with col2:
         if st.button("📄 View Application Form"):
             st.session_state["page"] = "application_form"  
+            st.toast("✅ Redirecting to Application Page...", icon="✅")   
+            time.sleep(0.5)   
             st.rerun()
 
     with col3:
         if st.button("🚪 Sign Out"):
             st.session_state["page"] = "Home"
+            st.toast("✅ Back to Home Page...", icon="✅")    
+            time.sleep(0.5)          
             st.rerun()
 
 def application_form_page():
@@ -270,7 +294,7 @@ def application_form_page():
 
     if uploaded_image:
         st.subheader("Uploaded MRI Scan:")
-        st.image(uploaded_image, caption="MRI Image", use_container_width=True)
+        st.image(uploaded_image, caption="MRI Image", use_column_width=True)
 
         st.subheader("Diagnosis Result:")
         st.write(f"🟢 **Prediction:** {prediction_label}")
@@ -288,7 +312,7 @@ def application_form_page():
             # Provide the PDF as a downloadable file using Streamlit's download_button
             with open(pdf_path, "rb") as pdf_file:
                 st.download_button(
-                    label="📥 Download Report",  # Label for the button
+                    label="📥 Download",  # Label for the button
                     data=pdf_file,  # File content to be downloaded
                     file_name="Alzheimer_MRI_Report.pdf",  # The name of the file when downloaded
                     mime="application/pdf"  # MIME type for PDF
@@ -298,8 +322,10 @@ def application_form_page():
 
 
 
-    if st.button("🔙 Back"):
+    if st.button("🔁  Scan Page"):
         st.session_state["page"] = "scan"
+        st.toast("✅ Back to Scan Page...", icon="✅")
+        time.sleep(0.5)           
         st.rerun()
 
 
@@ -313,7 +339,7 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
     pdf.ln(10)
 
     # Adding Date and Time
-    current_datetime = datetime.now().strftime("%H:%M:%S %d-%m-%Y ")
+    current_datetime = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
     pdf.set_font("Arial", "I", 10)
     pdf.cell(0, 10, f"Report Generated: {current_datetime}", ln=True)
     pdf.ln(10)
@@ -333,10 +359,15 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
     pdf.cell(0, 10, f"Prediction: {diagnosis}", ln=True)
     pdf.cell(0, 10, f"Confidence: {confidence:.2f}%", ln=True)
     pdf.ln(10)
+
     if image_path:
-        pdf.image(image_path, x=50, w=100)  
+        pdf.set_font("Arial", "B", 14)
+        pdf.cell(200, 10, "MRI Scan:", ln=True)
+        pdf.image(image_path, x=60, w=100)  
         pdf.ln(10)
-        
+
+    pdf.set_font("Arial", "I", 10)
+    pdf.cell(200, 10, "This report is generated by the Alzheimer's MRI Analysis System.", ln=True, align="C")    
    
     pdf_filename = "Alzheimer_MRI_Report.pdf"
     pdf.output(pdf_filename)
@@ -346,6 +377,8 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
 def main():
     if "page" not in st.session_state:
         st.session_state["page"] = "Home"
+        st.toast("✅ Redirecting to Home Page...", icon="✅")
+        time.sleep(0.5)         
 
     pages = {"Home": home_page, "Login": login_page, "Signup": signup_page, "guidelines": guidelines_page, "scan": scan_page,   "application_form": application_form_page }
     pages[st.session_state["page"]]()
