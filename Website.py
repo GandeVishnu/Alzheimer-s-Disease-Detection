@@ -246,7 +246,7 @@ def scan_page():
 
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
-        st.image(image, caption='Uploaded Image', use_column_width=True)
+        st.image(image, caption='Uploaded Image', use_container_width=True)
         predicted_label, confidence, predictions = predict(image)
         st.markdown(f"### 🟢 Prediction: {predicted_label}")
         st.markdown(f"### 📊 Confidence: {confidence:.2f}%")
@@ -294,7 +294,7 @@ def application_form_page():
 
     if uploaded_image:
         st.subheader("Uploaded MRI Scan:")
-        st.image(uploaded_image, caption="MRI Image", use_column_width=True)
+        st.image(uploaded_image, caption="MRI Image", use_container_width=True)
 
         st.subheader("Diagnosis Result:")
         st.write(f"🟢 **Prediction:** {prediction_label}")
