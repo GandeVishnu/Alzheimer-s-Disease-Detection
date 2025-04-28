@@ -13,39 +13,31 @@ from pymongo import MongoClient
 import pymongo.errors
 
 # -------------------- Streamlit Setup --------------------
-# Must be the first Streamlit command
 st.set_page_config(page_title="Alzheimers Disease Detection", page_icon="🧠")
 
 # -------------------- MongoDB Setup --------------------
-
-MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/"   
-client = MongoClient(MONGO_URL)
-db = client["AlzheimersDiseaseDetection"]   
-users_collection = db["users"]   
-applications_collection = db["applications"]  
-
 def initialize_mongo():
     try:
-        # Use Streamlit secrets for MongoDB URL (recommended for Streamlit Cloud)
         MONGO_URL = st.secrets["mongo"]["url"]
     except KeyError:
-        # Fallback for local development
         MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/AlzheimersDiseaseDetection?retryWrites=true&w=majority"
 
-    try:
-        client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=30000)
-        # Test connection
-        client.server_info()
-        db = client["AlzheimersDiseaseDetection"]
-        users_collection = db["users"]
-        applications_collection = db["applications"]
-        return client, db, users_collection, applications_collection
-    except pymongo.errors.ServerSelectionTimeoutError:
-        st.error("Failed to connect to MongoDB. Please check your connection settings or try again later.")
-        return None, None, None, None
-    except Exception as e:
-        st.error(f"MongoDB connection error: {e}")
-        return None, None, None, None
+    for attempt in range(3):  # Retry 3 times
+        try:
+            client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=30000)
+            client.server_info()  # Test connection
+            db = client["AlzheimersDiseaseDetection"]
+            users_collection = db["users"]
+            applications_collection = db["applications"]
+            return client, db, users_collection, applications_collection
+        except pymongo.errors.ServerSelectionTimeoutError:
+            st.warning(f"Connection attempt {attempt + 1} failed. Retrying...")
+            time.sleep(2)  # Wait before retrying
+        except Exception as e:
+            st.error(f"MongoDB connection error: {e}")
+            return None, None, None, None
+    st.error("Failed to connect to MongoDB after multiple attempts. Please check your connection settings.")
+    return None, None, None, None
 
 # Initialize MongoDB connection
 mongo_client, db, users_collection, applications_collection = initialize_mongo()
@@ -214,7 +206,6 @@ def signup_page():
             st.error("Passwords do not match!")
         else:
             save_user(email, name, password)
-            # Note: Success message is handled in save_user
             st.session_state.page = "Home"
             st.rerun()
 
