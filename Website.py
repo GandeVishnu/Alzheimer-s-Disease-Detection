@@ -357,7 +357,7 @@ def previous_scan_page():
             st.write(f"**Name:** {application.get('name', 'N/A')}")
             st.write(f"**Age:** {application.get('age', 'N/A')}")
             st.write(f"**Place:** {application.get('place', 'N/A')}")
-            st.write(f"**Phone Number:** {application.get Shet.write(f"**Prediction:** {application.get('prediction', 'N/A')}")
+            st.write(f"**Phone Number:** {application.get Shet.write(f"**Prediction:** {application.get('prediction', 'N/A')}}")
             st.write(f"**Confidence:** {application.get('confidence', 0.0):.2f}%")
 
             if "image_base64" in application and application["image_base64"]:
