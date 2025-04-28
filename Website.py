@@ -12,37 +12,41 @@ from datetime import datetime
 from pymongo import MongoClient
 import pymongo.errors
 
-# -------------------- MongoDB Setup --------------------
-# Use Streamlit secrets for MongoDB URL (recommended for Streamlit Cloud)
-try:
-    MONGO_URL = st.secrets["mongo"]["url"]
-except KeyError:
-    # Fallback for local development
-    MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/AlzheimersDiseaseDetection?retryWrites=true&w=majority"
+# -------------------- Streamlit Setup --------------------
+# Must be the first Streamlit command
+st.set_page_config(page_title="Alzheimers Disease Detection", page_icon="🧠")
 
-# Initialize MongoClient with increased timeout
-client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=30000)
-try:
-    # Test connection
-    client.server_info()
-    db = client["AlzheimersDiseaseDetection"]
-    users_collection = db["users"]
-    applications_collection = db["applications"]
-except pymongo.errors.ServerSelectionTimeoutError:
-    st.error("Failed to connect to MongoDB. Please check your connection settings.")
-    db = None
-    users_collection = None
-    applications_collection = None
+# -------------------- MongoDB Setup --------------------
+def initialize_mongo():
+    try:
+        # Use Streamlit secrets for MongoDB URL (recommended for Streamlit Cloud)
+        MONGO_URL = st.secrets["mongo"]["url"]
+    except KeyError:
+        # Fallback for local development
+        MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/AlzheimersDiseaseDetection?retryWrites=true&w=majority"
+
+    try:
+        client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=30000)
+        # Test connection
+        client.server_info()
+        db = client["AlzheimersDiseaseDetection"]
+        users_collection = db["users"]
+        applications_collection = db["applications"]
+        return client, db, users_collection, applications_collection
+    except pymongo.errors.ServerSelectionTimeoutError:
+        st.error("Failed to connect to MongoDB. Please check your connection settings or try again later.")
+        return None, None, None, None
+    except Exception as e:
+        st.error(f"MongoDB connection error: {e}")
+        return None, None, None, None
+
+# Initialize MongoDB connection
+mongo_client, db, users_collection, applications_collection = initialize_mongo()
 
 # -------------------- Constants --------------------
-page_title = "Alzheimers Disease Detection"
-page_icon = "🧠"
 MODEL_PATH = "20_04_2025_ADNI_best_model.keras"
 IMG_SIZE = (224, 224)
 class_labels = ['Final AD JPEG', 'Final CN JPEG', 'Final EMCI JPEG', 'Final LMCI JPEG', 'Final MCI JPEG']
-
-# -------------------- Streamlit Setup --------------------
-st.set_page_config(page_title=page_title, page_icon=page_icon)
 
 # -------------------- Utility Functions --------------------
 @st.cache_resource
