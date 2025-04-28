@@ -10,13 +10,22 @@ import base64
 import time
 from datetime import datetime
 from pymongo import MongoClient
+from pymongo.errors import ServerSelectionTimeoutError, ConnectionFailure
 from io import BytesIO
+import uuid
 
-MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/"   
-client = MongoClient(MONGO_URL)
-db = client["AlzheimersDiseaseDetection"]   
-users_collection = db["users"]   
-applications_collection = db["applications"]   
+# MongoDB connection with increased timeouts
+MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/?connectTimeoutMS=30000&serverSelectionTimeoutMS=30000"   
+try:
+    client = MongoClient(MONGO_URL)
+    # Test the connection
+    client.admin.command('ping')
+    db = client["AlzheimersDiseaseDetection"]   
+    users_collection = db["users"]   
+    applications_collection = db["applications"]   
+except (ServerSelectionTimeoutError, ConnectionFailure) as e:
+    st.error(f"Failed to connect to MongoDB: {str(e)}. Please check your connection and try again.")
+    client = None
 
 page_title = "Alzheimers Disease Detection"
 page_icon = "🧠"
@@ -59,22 +68,48 @@ def decode_image(encoded_image):
     return image
 
 def save_user(email, name, password):
-    user = {"email": email, "name": name, "password": password}
-    users_collection.insert_one(user)
+    if client is None:
+        st.error("Database connection is not available.")
+        return
+    try:
+        user = {"email": email, "name": name, "password": password}
+        users_collection.insert_one(user)
+    except Exception as e:
+        st.error(f"Error saving user: {str(e)}")
 
 def load_users():
-    users = users_collection.find()
-    return {user["email"]: {"name": user["name"], "password": user["password"]} for user in users}
+    if client is None:
+        st.error("Database connection is not available.")
+        return {}
+    try:
+        users = users_collection.find()
+        return {user["email"]: {"name": user["name"], "password": user["password"]} for user in users}
+    except Exception as e:
+        st.error(f"Error loading users: {str(e)}")
+        return {}
 
 def save_application_form(data):
-    applications_collection.insert_one(data)
+    if client is None:
+        st.error("Database connection is not available.")
+        return
+    try:
+        applications_collection.insert_one(data)
+    except Exception as e:
+        st.error(f"Error saving application: {str(e)}")
 
 def get_previous_application(email):
-    application = applications_collection.find_one(
-        {"user_email": email},
-        sort=[("submitted_at", -1)] 
-    )
-    return application    
+    if client is None:
+        st.error("Database connection is not available.")
+        return None
+    try:
+        application = applications_collection.find_one(
+            {"user_email": email},
+            sort=[("submitted_at", -1)] 
+        )
+        return application    
+    except Exception as e:
+        st.error(f"Error retrieving previous application: {str(e)}")
+        return None
 
 def add_responsive_styles():
     bg_color = "#A8D5E3"  
@@ -290,14 +325,21 @@ def scan_page():
             st.rerun()
 
 def get_previous_applications(email):
-    applications = applications_collection.find({"user_email": email}).sort("submitted_at", -1)
-    return list(applications)
+    if client is None:
+        st.error("Database connection is not available.")
+        return []
+    try:
+        applications = applications_collection.find({"user_email": email}).sort("submitted_at", -1)
+        return list(applications)
+    except Exception as e:
+        st.error(f"Error retrieving applications: {str(e)}")
+        return []
 
 def previous_scan_page():
     add_responsive_styles()
     st.title("📜 Previous Scan Details")
     
-    email = st.session_state.get("Email", "")
+    email = st.session_state.getф"Email", "")
     if not email:
         st.error("Please log in to view previous scans.")
         if st.button("Back to Guidelines"):
