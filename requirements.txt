@@ -1,11 +1,6 @@
 streamlit
 numpy
 tensorflow
-PIL
+pillow
 fpdf
-pymongo 
-MongoClient
-base64
-time
-datetime
-BytesIO
+pymongo
