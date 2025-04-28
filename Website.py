@@ -18,7 +18,7 @@ st.set_page_config(page_title=page_title, page_icon=page_icon)
 
 # -------------------- MongoDB Setup --------------------
 def initialize_mongodb():
-    MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/"
+    MONGO_URL = os.getenv("MONGO_URL", "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/")
     try:
         client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000)
         client.server_info()  # Test connection
