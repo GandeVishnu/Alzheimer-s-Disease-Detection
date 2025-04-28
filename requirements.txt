@@ -1,6 +1,6 @@
 streamlit
-tensorflow==2.15.0
-pillow==10.0.0
-fpdf==1.7.2
-pymongo==4.6.0
-numpy==1.26.0
+tensorflow
+pillow
+fpdf
+pymongo
+numpy
