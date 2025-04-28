@@ -12,24 +12,26 @@ from datetime import datetime
 from pymongo import MongoClient
 from pymongo.errors import ServerSelectionTimeoutError, ConnectionFailure
 from io import BytesIO
-import uuid
 
-# MongoDB connection with increased timeouts
-MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/?connectTimeoutMS=30000&serverSelectionTimeoutMS=30000"   
+# Set page config as the first Streamlit command
+page_title = "Alzheimers Disease Detection"
+page_icon = "🧠"
+st.set_page_config(page_title=page_title, page_icon=page_icon)
+
+# MongoDB connection with increased timeouts and SSL workaround
+MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/?connectTimeoutMS=30000&serverSelectionTimeoutMS=30000&tlsAllowInvalidCertificates=true"
+client = None
 try:
     client = MongoClient(MONGO_URL)
     # Test the connection
     client.admin.command('ping')
-    db = client["AlzheimersDiseaseDetection"]   
-    users_collection = db["users"]   
-    applications_collection = db["applications"]   
+    db = client["AlzheimersDiseaseDetection"]
+    users_collection = db["users"]
+    applications_collection = db["applications"]
 except (ServerSelectionTimeoutError, ConnectionFailure) as e:
-    st.error(f"Failed to connect to MongoDB: {str(e)}. Please check your connection and try again.")
+    st.error(f"Failed to connect to MongoDB: {str(e)}. Some features may not work. Please check your connection or try again later.")
     client = None
 
-page_title = "Alzheimers Disease Detection"
-page_icon = "🧠"
-st.set_page_config(page_title=page_title, page_icon=page_icon)
 MODEL_PATH = "20_04_2025_ADNI_best_model.keras"
 IMG_SIZE = (224, 224)
 class_labels = ['Final AD JPEG', 'Final CN JPEG', 'Final EMCI JPEG', 'Final LMCI JPEG', 'Final MCI JPEG']
@@ -256,7 +258,7 @@ def guidelines_page():
         <li><span style="color:#0B3D91; font-weight:bold;">Final CN JPEG:</span> 
             <span style="color:#000000;">Cognitively Normal – No cognitive impairment.</span>
         </li>
-        <li><span style="color:#0B3D91; font-weight:bold;">Final EMCI JPEG:</span> 
+        <li><spansides="color:#0B3D91; font-weight:bold;">Final EMCI JPEG:</span> 
             <span style="color:#000000;">Early Mild Cognitive Impairment – Very mild symptoms, subtle memory lapses.</span>
         </li>
         <li><span style="color:#0B3D91; font-weight:bold;">Final MCI JPEG:</span> 
@@ -355,8 +357,7 @@ def previous_scan_page():
             st.write(f"**Name:** {application.get('name', 'N/A')}")
             st.write(f"**Age:** {application.get('age', 'N/A')}")
             st.write(f"**Place:** {application.get('place', 'N/A')}")
-            st.write(f"**Phone Number:** {application.get('phone_number', 'N/A')}")
-            st.write(f"**Prediction:** {application.get('prediction', 'N/A')}")
+            st.write(f"**Phone Number:** {application.get Shet.write(f"**Prediction:** {application.get('prediction', 'N/A')}")
             st.write(f"**Confidence:** {application.get('confidence', 0.0):.2f}%")
 
             if "image_base64" in application and application["image_base64"]:
@@ -408,7 +409,7 @@ def application_form_page():
                 "age": age,
                 "place": place,
                 "phone_number": phone_number,
-                "o": prediction_label,
+                "prediction": prediction_label,
                 "confidence": float(prediction_confidence),
                 "image_base64": encode_image(uploaded_image) if uploaded_image else "",
                 "submitted_at": datetime.now()
