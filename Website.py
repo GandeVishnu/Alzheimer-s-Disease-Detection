@@ -384,7 +384,7 @@ def application_form_page():
                 "prediction": prediction_label,
                 "confidence": float(prediction_confidence),
                 "image_base64": encode_image(uploaded_image),
-                "submitted_at": datetime.now()
+                "submitted_at": datetime.now().strftime("%d-%m-%Y %H:%M:%S")
             }
             save_application_form(form_data)
             st.success("Application form and scan successfully saved!")
