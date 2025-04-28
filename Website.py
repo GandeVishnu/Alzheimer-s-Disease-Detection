@@ -16,31 +16,37 @@ import pymongo.errors
 st.set_page_config(page_title="Alzheimers Disease Detection", page_icon="🧠")
 
 # -------------------- MongoDB Setup --------------------
-def initialize_mongo():
+def initialize_mongo(debug_mode=False):
     try:
         MONGO_URL = st.secrets["mongo"]["url"]
     except KeyError:
         MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/AlzheimersDiseaseDetection?retryWrites=true&w=majority"
+        if debug_mode:
+            st.warning("Using fallback MongoDB URL for local development.")
 
     for attempt in range(3):  # Retry 3 times
         try:
             client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=30000)
-            client.server_info()  # Test connection
+            server_info = client.server_info()  # Test connection
+            if debug_mode:
+                st.write("MongoDB Server Info:", server_info)
             db = client["AlzheimersDiseaseDetection"]
             users_collection = db["users"]
             applications_collection = db["applications"]
+            if debug_mode:
+                st.success("MongoDB connection established!")
             return client, db, users_collection, applications_collection
-        except pymongo.errors.ServerSelectionTimeoutError:
-            st.warning(f"Connection attempt {attempt + 1} failed. Retrying...")
+        except pymongo.errors.ServerSelectionTimeoutError as e:
+            st.warning(f"Connection attempt {attempt + 1} failed: {str(e)}. Retrying...")
             time.sleep(2)  # Wait before retrying
         except Exception as e:
-            st.error(f"MongoDB connection error: {e}")
+            st.error(f"MongoDB connection error: {str(e)}")
             return None, None, None, None
     st.error("Failed to connect to MongoDB after multiple attempts. Please check your connection settings.")
     return None, None, None, None
 
-# Initialize MongoDB connection
-mongo_client, db, users_collection, applications_collection = initialize_mongo()
+# Initialize MongoDB connection (set debug_mode=True for detailed output)
+mongo_client, db, users_collection, applications_collection = initialize_mongo(debug_mode=False)
 
 # -------------------- Constants --------------------
 MODEL_PATH = "20_04_2025_ADNI_best_model.keras"
@@ -235,6 +241,9 @@ def scan_page():
                 st.success(f"Prediction: {predicted_label}")
                 st.info(f"Confidence: {confidence:.2f}%")
 
+                st.session_state["uploaded_image"] = image
+                st.session_state["prediction_label"] = predicted_label
+                st.session_state["prediction_confidence"] = confidence10
                 st.session_state["uploaded_image"] = image
                 st.session_state["prediction_label"] = predicted_label
                 st.session_state["prediction_confidence"] = confidence
