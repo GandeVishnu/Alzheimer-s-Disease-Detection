@@ -11,6 +11,7 @@ import time
 from datetime import datetime
 from pymongo import MongoClient
 from io import BytesIO
+st.set_page_config(page_title="Alzheimer's Disease Detection", page_icon="🧠")
 
 # -------------------- MongoDB Setup --------------------
 MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/"
@@ -20,7 +21,6 @@ users_collection = db["users"]
 applications_collection = db["applications"]
 
 # -------------------- Streamlit Page Setup --------------------
-st.set_page_config(page_title="Alzheimer's Disease Detection", page_icon="🧠")
 MODEL_PATH = "20_04_2025_ADNI_best_model.keras"
 IMG_SIZE = (224, 224)
 class_labels = ['Final AD JPEG', 'Final CN JPEG', 'Final EMCI JPEG', 'Final LMCI JPEG', 'Final MCI JPEG']
