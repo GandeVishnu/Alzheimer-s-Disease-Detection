@@ -1,55 +1,85 @@
 import streamlit as st
-import sqlite3
 import os
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import load_model # type: ignore
-from tensorflow.keras.applications.efficientnet import preprocess_input  # type: ignore
+from tensorflow.keras.models import load_model 
+from tensorflow.keras.applications.efficientnet import preprocess_input  
 from PIL import Image
 from fpdf import FPDF
 import base64
 import time
 from datetime import datetime
+from pymongo import MongoClient
+from io import BytesIO
 
+MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/"   
+client = MongoClient(MONGO_URL)
+db = client["AlzheimersDiseaseDetection"]   
+users_collection = db["users"]   
+applications_collection = db["applications"]   
 
-DB_FILE = "User_Credentials.db"
-MODEL_PATH = "20_04_2025_ADNI_best_model.keras"
+page_title="Alzheimers Disease Detection"
+page_icon="🧠"
+st.set_page_config(page_title=page_title,page_icon=page_icon)
+MODEL_PATH = r"F:\ADNI_5_FINAL_FOLDER\20_04_2025_ADNI_best_model.keras"
 IMG_SIZE = (224, 224)
 class_labels = ['Final AD JPEG', 'Final CN JPEG', 'Final EMCI JPEG', 'Final LMCI JPEG', 'Final MCI JPEG']
 
-def initialize_db():
-    if not os.path.exists(DB_FILE):
-        create_db()
+ 
 
-def create_db():
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            email TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            password TEXT NOT NULL
-        )
-    ''')
-    conn.commit()
-    conn.close()
+@st.cache_resource
+def load_prediction_model():
+    return load_model(MODEL_PATH)
 
-def load_users():
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT email, name, password FROM users")
-    users = cursor.fetchall()
-    conn.close()
-    return {user[0]: {"name": user[1], "password": user[2]} for user in users}
+model = load_prediction_model()
+
+def preprocess_image(image):
+    image = image.convert('RGB')
+    image = image.resize(IMG_SIZE)
+    img_array = np.array(image, dtype=np.float32)
+    img_array = np.expand_dims(img_array, axis=0)
+    img_array = preprocess_input(img_array)
+    return img_array
+
+def predict(image):
+    img_array = preprocess_image(image)
+    predictions = model.predict(img_array)[0]
+    predicted_class = np.argmax(predictions)
+    confidence = predictions[predicted_class] * 100
+    return class_labels[predicted_class], confidence, predictions
+
+def encode_image(image):
+    from io import BytesIO
+    buffer = BytesIO()
+    image.save(buffer, format="JPEG")
+    encoded = base64.b64encode(buffer.getvalue()).decode()
+    return encoded
+
+def decode_image(encoded_image):
+    decoded = base64.b64decode(encoded_image)
+    buffer = BytesIO(decoded)
+    image = Image.open(buffer)
+    return image
 
 def save_user(email, name, password):
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO users (email, name, password) VALUES (?, ?, ?)", (email, name, password))
-    conn.commit()
-    conn.close()
+    user = {"email": email, "name": name, "password": password}
+    users_collection.insert_one(user)
 
-initialize_db()
+def load_users():
+    users = users_collection.find()
+    return {user["email"]: {"name": user["name"], "password": user["password"]} for user in users}
+
+def save_application_form(data):
+    applications_collection.insert_one(data)
+
+def get_previous_application(email):
+    application = applications_collection.find_one(
+        {"user_email": email},
+        sort=[("submitted_at", -1)] 
+    )
+    return application    
+
+#---
 
 def add_responsive_styles():
     bg_color = "#A8D5E3"  
@@ -109,26 +139,6 @@ def add_responsive_styles():
         </style>
     """, unsafe_allow_html=True)
 
-@st.cache_resource
-def load_prediction_model():
-    return load_model(MODEL_PATH)
-
-model = load_prediction_model()
-
-def preprocess_image(image):
-    image = image.convert('RGB')
-    image = image.resize(IMG_SIZE)
-    img_array = np.array(image, dtype=np.float32)
-    img_array = np.expand_dims(img_array, axis=0)
-    img_array = preprocess_input(img_array)
-    return img_array
-
-def predict(image):
-    img_array = preprocess_image(image)
-    predictions = model.predict(img_array)[0]
-    predicted_class = np.argmax(predictions)
-    confidence = predictions[predicted_class] * 100
-    return class_labels[predicted_class], confidence, predictions
 
 
 
@@ -157,14 +167,16 @@ def login_page():
     add_responsive_styles()
     st.subheader("🔐 Login")
     email = st.text_input("Email", key="login_email")
-    password = st.text_input("Password", type="password", key="login_password")  
+    password = st.text_input("Password", type="password")  
     users = load_users()
 
     if st.button("Login"):
+
         if email in users and users[email]["password"] == password:
             st.toast("✅ Login Successful! Redirecting...", icon="✅")
             time.sleep(0.5)  
             st.session_state["Name"] = users[email]["name"]
+            st.session_state["Email"] = email  
             st.session_state["page"] = "guidelines"
             st.rerun()
         else:
@@ -232,12 +244,21 @@ def guidelines_page():
     </ul>
        
     """, unsafe_allow_html=True)
+    col1, col2= st.columns([1,1])
+
+    with col1:
+        if st.button("Proceed to Scan"):
+            st.session_state["page"] = "scan"
+            st.toast("✅ Redirecting to Scan Page...", icon="✅")
+            time.sleep(0.5)         
+            st.rerun()
+    with col2:
+        if st.button("Previous Scan"):
+            st.session_state["page"] = "previous_scan"
+            st.toast("✅ Redirecting to Previous Scan Page...", icon="✅")
+            time.sleep(0.5)         
+            st.rerun()
     
-    if st.button("Proceed to Scan"):
-        st.session_state["page"] = "scan"
-        st.toast("✅ Redirecting to Scan Page...", icon="✅")
-        time.sleep(0.5)         
-        st.rerun()
 
 def scan_page():
     add_responsive_styles()
@@ -246,7 +267,7 @@ def scan_page():
 
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
-        st.image(image, caption='Uploaded Image', use_container_width=True)
+        st.image(image, caption='Uploaded Image', use_column_width=True)
         predicted_label, confidence, predictions = predict(image)
         st.markdown(f"### 🟢 Prediction: {predicted_label}")
         st.markdown(f"### 📊 Confidence: {confidence:.2f}%")
@@ -278,29 +299,97 @@ def scan_page():
             time.sleep(0.5)          
             st.rerun()
 
+def get_previous_applications(email):
+    applications = applications_collection.find({"user_email": email}).sort("submitted_at", -1)
+    return list(applications)
+            
+def previous_scan_page():
+    add_responsive_styles()
+    st.title("📜 Previous Scan Details")
+    
+    email = st.session_state.get("Email", "")
+    if not email:
+        st.error("Please log in to view previous scans.")
+        if st.button("Back to Guidelines"):
+            st.session_state["page"] = "guidelines"
+            st.rerun()
+        return
+
+    applications = get_previous_applications(email)
+    
+    if applications:
+        for idx, application in enumerate(applications, 1):
+            st.markdown(f"### Scan {idx} - Submitted: {application.get('submitted_at', 'N/A')}")
+            st.write(f"**Name:** {application.get('name', 'N/A')}")
+            st.write(f"**Age:** {application.get('age', 'N/A')}")
+            st.write(f"**Place:** {application.get('place', 'N/A')}")
+            st.write(f"**Phone Number:** {application.get('phone_number', 'N/A')}")
+            st.write(f"**Prediction:** {application.get('prediction', 'N/A')}")
+            st.write(f"**Confidence:** {application.get('confidence', 0.0):.2f}%")
+
+            if "image_base64" in application and application["image_base64"]:
+                try:
+                    st.subheader(f"MRI Scan {idx}:")
+                    image = decode_image(application["image_base64"])
+                    st.image(image, caption=f"MRI Image - Scan {idx}", use_column_width=True)
+                except Exception as e:
+                    st.error(f"Error displaying image for scan {idx}: {str(e)}")
+            else:
+                st.info(f"No MRI image available for scan {idx}.")
+
+            st.markdown("---")  
+    else:
+        st.info("No previous scans found.")
+
+    if st.button("Back to Guidelines"):
+        st.session_state["page"] = "guidelines"
+        st.toast("✅ Back to Guidelines Page...", icon="✅")
+        time.sleep(0.5)
+        st.rerun()
+
 def application_form_page():
     add_responsive_styles()
     st.title("📝 Application Form")
+
+
+    name = st.text_input("Name")
+    age = st.text_input("Age")
+    place = st.text_input("Place")
+    phone_number = st.text_input("Phone Number")
 
     uploaded_image = st.session_state.get("uploaded_image", None)
     prediction_label = st.session_state.get("prediction_label", "N/A")
     prediction_confidence = st.session_state.get("prediction_confidence", 0.0)
 
 
-    name = st.text_input("Name", key="applicant_name")
-    age = st.text_input("Age", key="applicant_age")
-    place = st.text_input("Place",key="applicant_place")
-    phone_number = st.text_input("Phone Number",key="applicant_phone_number")
+    
 
     if uploaded_image:
         st.subheader("Uploaded MRI Scan:")
-        st.image(uploaded_image, caption="MRI Image", use_container_width=True)
+        st.image(uploaded_image, caption="MRI Image", use_column_width=True)
 
         st.subheader("Diagnosis Result:")
         st.write(f"🟢 **Prediction:** {prediction_label}")
         st.write(f"📊 **Confidence:** {prediction_confidence:.2f}%")
 
     if st.button("📥 Download Report"):
+        if name and age and place and phone_number:
+            form_data = {
+                "user_email": st.session_state.get("Email", ""),
+                "name": name,
+                "age": age,
+                "place": place,
+                "phone_number": phone_number,
+                "prediction": prediction_label,
+                "confidence": float(prediction_confidence),
+                "image_base64": encode_image(uploaded_image),
+                "submitted_at": datetime.now()
+            }
+            save_application_form(form_data)
+            st.success("Application form and scan successfully saved!")
+        else:
+            st.error("Please fill all the fields.")
+
         if name and age and place and phone_number:
             # Save the uploaded image temporarily
             temp_image_path = "temp_mri_image.jpg"
@@ -309,13 +398,12 @@ def application_form_page():
             # Generate the PDF report
             pdf_path = generate_pdf(name, age, place, phone_number, temp_image_path, prediction_label, prediction_confidence)
 
-            # Provide the PDF as a downloadable file using Streamlit's download_button
             with open(pdf_path, "rb") as pdf_file:
                 st.download_button(
-                    label="📥 Download",  # Label for the button
-                    data=pdf_file,  # File content to be downloaded
-                    file_name="Alzheimer_MRI_Report.pdf",  # The name of the file when downloaded
-                    mime="application/pdf"  # MIME type for PDF
+                    label="📥 Download", 
+                    data=pdf_file,  
+                    file_name="Alzheimer_MRI_Report.pdf", 
+                    mime="application/pdf" 
                 )
         else:
             st.warning("⚠ Please fill out all details before downloading.")
@@ -378,7 +466,14 @@ def main():
     if "page" not in st.session_state:
         st.session_state["page"] = "Home"
 
-    pages = {"Home": home_page, "Login": login_page, "Signup": signup_page, "guidelines": guidelines_page, "scan": scan_page,   "application_form": application_form_page }
+    pages = {"Home": home_page, 
+            "Login": login_page, 
+            "Signup": signup_page, 
+            "guidelines": guidelines_page, 
+            "scan": scan_page,   
+            "application_form": application_form_page, 
+            "previous_scan": previous_scan_page
+            }
     pages[st.session_state["page"]]()
 
 if __name__ == "__main__":
