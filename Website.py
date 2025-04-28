@@ -10,6 +10,268 @@ import base64
 import time
 from datetime import datetime
 from pymongo import MongoClient
+from io import BytesIO
+
+# -------------------- MongoDB Setup --------------------
+MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/"
+client = MongoClient(MONGO_URL)
+db = client["AlzheimersDiseaseDetection"]
+users_collection = db["users"]
+applications_collection = db["applications"]
+
+# -------------------- Streamlit Page Setup --------------------
+st.set_page_config(page_title="Alzheimer's Disease Detection", page_icon="🧠")
+MODEL_PATH = r"F:\ADNI_5_FINAL_FOLDER\20_04_2025_ADNI_best_model.keras"
+IMG_SIZE = (224, 224)
+class_labels = ['Final AD JPEG', 'Final CN JPEG', 'Final EMCI JPEG', 'Final LMCI JPEG', 'Final MCI JPEG']
+
+# -------------------- Model Loading --------------------
+@st.cache_resource
+def load_prediction_model():
+    return load_model(MODEL_PATH)
+
+model = load_prediction_model()
+
+# -------------------- Image Preprocessing and Prediction --------------------
+def preprocess_image(image):
+    image = image.convert('RGB')
+    image = image.resize(IMG_SIZE)
+    img_array = np.array(image, dtype=np.float32)
+    img_array = np.expand_dims(img_array, axis=0)
+    img_array = preprocess_input(img_array)
+    return img_array
+
+def predict(image):
+    img_array = preprocess_image(image)
+    predictions = model.predict(img_array)[0]
+    predicted_class = np.argmax(predictions)
+    confidence = predictions[predicted_class] * 100
+    return class_labels[predicted_class], confidence, predictions
+
+def encode_image(image):
+    buffer = BytesIO()
+    image.save(buffer, format="JPEG")
+    encoded = base64.b64encode(buffer.getvalue()).decode()
+    return encoded
+
+def decode_image(encoded_image):
+    decoded = base64.b64decode(encoded_image)
+    buffer = BytesIO(decoded)
+    image = Image.open(buffer)
+    return image
+
+# -------------------- MongoDB Functions --------------------
+def save_user(email, name, password):
+    user = {"email": email, "name": name, "password": password}
+    users_collection.insert_one(user)
+
+def load_users():
+    users = users_collection.find()
+    return {user["email"]: {"name": user["name"], "password": user["password"]} for user in users}
+
+def save_application_form(data):
+    applications_collection.insert_one(data)
+
+def get_previous_application(email):
+    return applications_collection.find_one(
+        {"user_email": email},
+        sort=[("submitted_at", -1)]
+    )
+
+def get_all_previous_applications(email):
+    return list(applications_collection.find({"user_email": email}).sort("submitted_at", -1))
+
+# -------------------- UI Styling --------------------
+def add_responsive_styles():
+    st.markdown("""
+        <style>
+            input, textarea {
+                caret-color: #000 !important;
+                color: #000 !important;
+            }
+            .stApp {
+                background-color: #A8D5E3 !important;
+            }
+            input[type="text"], input[type="password"], textarea {
+                background-color: white !important;
+                color: #000000 !important;
+                border-radius: 8px !important;
+                padding: 10px !important;
+                border: 2px solid #0e3c4a !important;
+                font-size: 16px !important;
+            }
+            .title-text {
+                font-size: 50px;
+                font-weight: bold;
+                color: DodgerBlue;
+                text-align: center;
+                text-transform: uppercase;
+                letter-spacing: 3px;
+                margin-top: 30px;
+            }
+            .subtitle-text {
+                font-size: 25px;
+                text-align: center;
+                color: Tomato;
+                margin-bottom: 20px;
+            }
+            div.stButton > button {
+                width: 100%;
+                background-color: #0B5ED7;
+                color: white;
+                padding: 12px;
+                font-size: 18px;
+                font-weight: bold;
+                border-radius: 8px;
+                border: none;
+            }
+            div.stButton > button:hover {
+                background-color: #084298;
+                transition: 0.3s ease;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+
+# -------------------- Pages --------------------
+def home_page():
+    add_responsive_styles()
+    st.markdown('<div class="title-text">🧠 Alzheimer\'s Disease Prediction</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subtitle-text">Analyze brain MRI scans to predict Alzheimer\'s stages using deep learning.</div>', unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    if col1.button("Login"):
+        st.session_state.page = "Login"
+        st.toast("✅ Moving to Login Page")
+        time.sleep(0.5)
+        st.rerun()
+
+    if col2.button("Signup"):
+        st.session_state.page = "Signup"
+        st.toast("✅ Moving to Signup Page")
+        time.sleep(0.5)
+        st.rerun()
+
+def login_page():
+    add_responsive_styles()
+    st.subheader("🔐 Login")
+    email = st.text_input("Email", key="login_email")
+    password = st.text_input("Password", type="password", key="login_password")
+    users = load_users()
+
+    if st.button("Login"):
+        if email in users and users[email]["password"] == password:
+            st.toast("✅ Login Successful! Redirecting...")
+            time.sleep(0.5)
+            st.session_state.Name = users[email]["name"]
+            st.session_state.Email = email
+            st.session_state.page = "guidelines"
+            st.rerun()
+        else:
+            st.error("Invalid email or password.")
+
+    if st.button("Back to Home"):
+        st.session_state.page = "Home"
+        st.toast("✅ Returning to Home")
+        time.sleep(0.5)
+        st.rerun()
+
+def signup_page():
+    add_responsive_styles()
+    st.subheader("📝 Signup")
+    name = st.text_input("Name")
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
+    confirm_password = st.text_input("Re-enter Password", type="password")
+    users = load_users()
+
+    if st.button("Signup"):
+        if not name or not email or not password or not confirm_password:
+            st.error("All fields are required.")
+        elif email in users:
+            st.error("User already exists!")
+        elif password != confirm_password:
+            st.error("Passwords do not match!")
+        else:
+            save_user(email, name, password)
+            st.toast("✅ Signup Successful! Returning to Home...")
+            time.sleep(0.5)
+            st.session_state.page = "Home"
+            st.rerun()
+
+    if st.button("Back to Home"):
+        st.session_state.page = "Home"
+        st.toast("✅ Returning to Home")
+        time.sleep(0.5)
+        st.rerun()
+
+def guidelines_page():
+    add_responsive_styles()
+    st.markdown(f"<h1 style='color: DodgerBlue;'>Welcome, {st.session_state.get('Name', 'User')}!</h1>", unsafe_allow_html=True)
+    st.markdown("""
+        <h2 style="color: Tomato;">📋 Understanding Alzheimer's Disease</h2>
+        <ul>
+            <li><b>Final CN JPEG:</b> Cognitively Normal – No cognitive impairment.</li>
+            <li><b>Final EMCI JPEG:</b> Early Mild Cognitive Impairment – Subtle memory lapses.</li>
+            <li><b>Final MCI JPEG:</b> Mild Cognitive Impairment – Includes early and late stages.</li>
+            <li><b>Final LMCI JPEG:</b> Late Mild Cognitive Impairment – Severe MCI close to AD onset.</li>
+            <li><b>Final AD JPEG:</b> Alzheimer's Disease – Significant memory and behavioral changes.</li>
+        </ul>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    if col1.button("Proceed to Scan"):
+        st.session_state.page = "scan"
+        st.toast("✅ Redirecting to Scan Page...")
+        time.sleep(0.5)
+        st.rerun()
+    if col2.button("View Previous Scans"):
+        st.session_state.page = "previous_scan"
+        st.toast("✅ Redirecting to Previous Scans...")
+        time.sleep(0.5)
+        st.rerun()
+
+def scan_page():
+    add_responsive_styles()
+    st.title("📊 Alzheimer’s MRI Scan")
+    uploaded_file = st.file_uploader("Upload Brain MRI Image", type=["jpg", "jpeg", "png"])
+
+    if uploaded_file:
+        image = Image.open(uploaded_file)
+        st.image(image, caption="Uploaded MRI Image", use_column_width=True)
+
+        predicted_label, confidence, _ = predict(image)
+        st.success(f"🧠 Prediction: {predicted_label}")
+        st.info(f"📈 Confidence: {confidence:.2f}%")
+
+        st.session_state.uploaded_image = image
+        st.session_state.prediction_label = predicted_label
+        st.session_state.prediction_confidence = confidence
+
+    col1, col2, col3 = st.columns(3)
+    if col1.button("⬅ Back"):
+        st.session_state.page = "guidelines"
+        st.rerun()
+    if col2.button("📄 Application Form"):
+        st.session_state.page = "application_form"
+        st.rerun()
+    if col3.button("🚪 Sign Out"):
+        st.session_state.page = "Home"
+        st.rerun()
+
+# -------------------- (rest continues for previous_scan_page and application_form_page similarly...) --------------------
+
+import streamlit as st
+import os
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.models import load_model
+from tensorflow.keras.applications.efficientnet import preprocess_input
+from PIL import Image
+from fpdf import FPDF
+import base64
+import time
+from datetime import datetime
+from pymongo import MongoClient
 import pymongo.errors
 
 # -------------------- Streamlit Setup --------------------
