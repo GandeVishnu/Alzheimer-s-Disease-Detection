@@ -11,24 +11,30 @@ from datetime import datetime
 from pymongo import MongoClient
 from io import BytesIO
 
-# -------------------- MongoDB Setup --------------------
-MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/"
-try:
-    client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000)
-    client.server_info()  # Test connection
-    db = client["AlzheimersDiseaseDetection"]
-    users_collection = db["users"]
-    applications_collection = db["applications"]
-except Exception as e:
-    st.error(f"MongoDB Connection Error: {str(e)}")
-
-# -------------------- Page Config --------------------
+# -------------------- Page Config (Must be first Streamlit command) --------------------
 page_title = "Alzheimers Disease Detection"
 page_icon = "🧠"
 st.set_page_config(page_title=page_title, page_icon=page_icon)
 
+# -------------------- MongoDB Setup --------------------
+def initialize_mongodb():
+    MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/"
+    try:
+        client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000)
+        client.server_info()  # Test connection
+        db = client["AlzheimersDiseaseDetection"]
+        users_collection = db["users"]
+        applications_collection = db["applications"]
+        return client, db, users_collection, applications_collection
+    except Exception as e:
+        st.error(f"MongoDB Connection Error: {str(e)}")
+        return None, None, None, None
+
+# Initialize MongoDB after set_page_config
+client, db, users_collection, applications_collection = initialize_mongodb()
+
 # -------------------- Model Setup --------------------
-MODEL_PATH = "20_04_2025_ADNI_best_model.keras"
+MODEL_PATH = "20_04_2025_ADNI_best_model.keras"  # Update for deployment
 IMG_SIZE = (224, 224)
 class_labels = ['Final AD JPEG', 'Final CN JPEG', 'Final EMCI JPEG', 'Final LMCI JPEG', 'Final MCI JPEG']
 
@@ -68,26 +74,34 @@ def decode_image(encoded_image):
 
 # -------------------- MongoDB Functions --------------------
 def save_user(email, name, password):
-    user = {"email": email, "name": name, "password": password}
-    users_collection.insert_one(user)
+    if users_collection:
+        user = {"email": email, "name": name, "password": password}
+        users_collection.insert_one(user)
 
 def load_users():
-    users = users_collection.find()
-    return {user["email"]: {"name": user["name"], "password": user["password"]} for user in users}
+    if users_collection:
+        users = users_collection.find()
+        return {user["email"]: {"name": user["name"], "password": user["password"]} for user in users}
+    return {}
 
 def save_application_form(data):
-    applications_collection.insert_one(data)
+    if applications_collection:
+        applications_collection.insert_one(data)
 
 def get_previous_application(email):
-    application = applications_collection.find_one(
-        {"user_email": email},
-        sort=[("submitted_at", -1)]
-    )
-    return application
+    if applications_collection:
+        application = applications_collection.find_one(
+            {"user_email": email},
+            sort=[("submitted_at", -1)]
+        )
+        return application
+    return None
 
 def get_previous_applications(email):
-    applications = applications_collection.find({"user_email": email}).sort("submitted_at", -1)
-    return list(applications)
+    if applications_collection:
+        applications = applications_collection.find({"user_email": email}).sort("submitted_at", -1)
+        return list(applications)
+    return []
 
 # -------------------- Styling --------------------
 def add_responsive_styles():
