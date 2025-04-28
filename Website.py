@@ -11,7 +11,7 @@ from datetime import datetime
 from pymongo import MongoClient
 from io import BytesIO
 
-# -------------------- Page Config (Must be first Streamlit command) --------------------
+# -------------------- Page Config (First Streamlit command) --------------------
 page_title = "Alzheimers Disease Detection"
 page_icon = "🧠"
 st.set_page_config(page_title=page_title, page_icon=page_icon)
@@ -34,7 +34,7 @@ def initialize_mongodb():
 client, db, users_collection, applications_collection = initialize_mongodb()
 
 # -------------------- Model Setup --------------------
-MODEL_PATH = "20_04_2025_ADNI_best_model.keras"  # Update for deployment
+MODEL_PATH = "20_04_2025_ADNI_best_model.keras"  # Ensure this is in the deployment directory
 IMG_SIZE = (224, 224)
 class_labels = ['Final AD JPEG', 'Final CN JPEG', 'Final EMCI JPEG', 'Final LMCI JPEG', 'Final MCI JPEG']
 
@@ -42,7 +42,11 @@ class_labels = ['Final AD JPEG', 'Final CN JPEG', 'Final EMCI JPEG', 'Final LMCI
 def load_prediction_model():
     return load_model(MODEL_PATH)
 
-model = load_prediction_model()
+try:
+    model = load_prediction_model()
+except Exception as e:
+    st.error(f"Model Loading Error: {str(e)}")
+    model = None
 
 # -------------------- Image Processing Functions --------------------
 def preprocess_image(image):
@@ -54,6 +58,8 @@ def preprocess_image(image):
     return img_array
 
 def predict(image):
+    if model is None:
+        return "Model not loaded", 0.0, []
     img_array = preprocess_image(image)
     predictions = model.predict(img_array)[0]
     predicted_class = np.argmax(predictions)
