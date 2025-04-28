@@ -2,31 +2,39 @@ import streamlit as st
 import os
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import load_model # type: ignore
-from tensorflow.keras.applications.efficientnet import preprocess_input  # type: ignore
+from tensorflow.keras.models import load_model 
+from tensorflow.keras.applications.efficientnet import preprocess_input  
 from PIL import Image
 from fpdf import FPDF
 import base64
 import time
 from datetime import datetime
 from pymongo import MongoClient
+from pymongo.errors import ServerSelectionTimeoutError, ConnectionFailure
 from io import BytesIO
 
-# -------------------- MongoDB Setup --------------------
-MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/"   # or your Atlas URL
-client = MongoClient(MONGO_URL)
-db = client["AlzheimersDiseaseDetection"]    # Database
-users_collection = db["users"]   # Users collection
-applications_collection = db["applications"]   # Application form collection
-#---
-page_title="Alzheimers Disease Detection"
-page_icon="🧠"
-st.set_page_config(page_title=page_title,page_icon=page_icon)
+# Set page config as the first Streamlit command
+page_title = "Alzheimers Disease Detection"
+page_icon = "🧠"
+st.set_page_config(page_title=page_title, page_icon=page_icon)
+
+# MongoDB connection with increased timeouts and SSL workaround
+MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/?connectTimeoutMS=30000&serverSelectionTimeoutMS=30000&tlsAllowInvalidCertificates=true"
+client = None
+try:
+    client = MongoClient(MONGO_URL)
+    # Test the connection
+    client.admin.command('ping')
+    db = client["AlzheimersDiseaseDetection"]
+    users_collection = db["users"]
+    applications_collection = db["applications"]
+except (ServerSelectionTimeoutError, ConnectionFailure) as e:
+    st.error(f"Failed to connect to MongoDB: {str(e)}. Some features may not work. Please check your connection or try again later.")
+    client = None
+
 MODEL_PATH = "20_04_2025_ADNI_best_model.keras"
 IMG_SIZE = (224, 224)
 class_labels = ['Final AD JPEG', 'Final CN JPEG', 'Final EMCI JPEG', 'Final LMCI JPEG', 'Final MCI JPEG']
-
- 
 
 @st.cache_resource
 def load_prediction_model():
@@ -50,7 +58,6 @@ def predict(image):
     return class_labels[predicted_class], confidence, predictions
 
 def encode_image(image):
-    from io import BytesIO
     buffer = BytesIO()
     image.save(buffer, format="JPEG")
     encoded = base64.b64encode(buffer.getvalue()).decode()
@@ -61,26 +68,50 @@ def decode_image(encoded_image):
     buffer = BytesIO(decoded)
     image = Image.open(buffer)
     return image
-# -------------------- MongoDB Functions --------------------
+
 def save_user(email, name, password):
-    user = {"email": email, "name": name, "password": password}
-    users_collection.insert_one(user)
+    if client is None:
+        st.error("Database connection is not available.")
+        return
+    try:
+        user = {"email": email, "name": name, "password": password}
+        users_collection.insert_one(user)
+    except Exception as e:
+        st.error(f"Error saving user: {str(e)}")
 
 def load_users():
-    users = users_collection.find()
-    return {user["email"]: {"name": user["name"], "password": user["password"]} for user in users}
+    if client is None:
+        st.error("Database connection is not available.")
+        return {}
+    try:
+        users = users_collection.find()
+        return {user["email"]: {"name": user["name"], "password": user["password"]} for user in users}
+    except Exception as e:
+        st.error(f"Error loading users: {str(e)}")
+        return {}
 
 def save_application_form(data):
-    applications_collection.insert_one(data)
+    if client is None:
+        st.error("Database connection is not available.")
+        return
+    try:
+        applications_collection.insert_one(data)
+    except Exception as e:
+        st.error(f"Error saving application: {str(e)}")
 
 def get_previous_application(email):
-    application = applications_collection.find_one(
-        {"user_email": email},
-        sort=[("submitted_at", -1)]  # Sort by submitted_at in descending order to get the most recent
-    )
-    return application    
-
-#---
+    if client is None:
+        st.error("Database connection is not available.")
+        return None
+    try:
+        application = applications_collection.find_one(
+            {"user_email": email},
+            sort=[("submitted_at", -1)] 
+        )
+        return application    
+    except Exception as e:
+        st.error(f"Error retrieving previous application: {str(e)}")
+        return None
 
 def add_responsive_styles():
     bg_color = "#A8D5E3"  
@@ -96,8 +127,8 @@ def add_responsive_styles():
                 background-color: {bg_color} !important;
             }}
             input[type="text"], input[type="password"], textarea {{
-                background-color: white !important;  /* White background */
-                color: #000000 !important;  /* Black text */
+                background-color: white !important;
+                color: #000000 !important;
                 border-radius: 8px !important;
                 padding: 10px !important;
                 border: 2px solid #0e3c4a !important;
@@ -121,28 +152,26 @@ def add_responsive_styles():
                 margin-bottom: 20px;
             }}
 
-            div.stButton > button {{
-                width: 100%;
-                background-color: #0B5ED7;
-                color: white;
-                padding: 12px;
-                font-size: 18px;
-                font-weight: bold;
-                border-radius: 8px;
-                border: none;
+            /* Button styling with higher specificity */
+            .stButton > button {{
+                width: 100% !important;
+                background-color: #0B5ED7 !important;
+                color: white !important;
+                padding: 12px !important;
+                font-size: 18px !important;
+                font-weight: bold !important;
+                border-radius: 8px !important;
+                border: none !important;
+                display: block !important;
+                margin: 10px 0 !important;
+                cursor: pointer !important;
             }}
-            div.stButton > button:hover {{
-                background-color: #084298;
-                transition: 0.3s ease;
+            .stButton > button:hover {{
+                background-color: #084298 !important;
+                transition: 0.3s ease !important;
             }}
-
-
         </style>
     """, unsafe_allow_html=True)
-
-
-
-
 
 def home_page():
     add_responsive_styles()
@@ -172,12 +201,11 @@ def login_page():
     users = load_users()
 
     if st.button("Login"):
-
         if email in users and users[email]["password"] == password:
             st.toast("✅ Login Successful! Redirecting...", icon="✅")
             time.sleep(0.5)  
             st.session_state["Name"] = users[email]["name"]
-            st.session_state["Email"] = email  # Store the email in session state
+            st.session_state["Email"] = email  
             st.session_state["page"] = "guidelines"
             st.rerun()
         else:
@@ -230,7 +258,7 @@ def guidelines_page():
         <li><span style="color:#0B3D91; font-weight:bold;">Final CN JPEG:</span> 
             <span style="color:#000000;">Cognitively Normal – No cognitive impairment.</span>
         </li>
-        <li><span style="color:#0B3D91; font-weight:bold;">Final EMCI JPEG:</span> 
+        <li><spansides="color:#0B3D91; font-weight:bold;">Final EMCI JPEG:</span> 
             <span style="color:#000000;">Early Mild Cognitive Impairment – Very mild symptoms, subtle memory lapses.</span>
         </li>
         <li><span style="color:#0B3D91; font-weight:bold;">Final MCI JPEG:</span> 
@@ -243,9 +271,8 @@ def guidelines_page():
             <span style="color:#000000;">Alzheimer’s Disease – Advanced cognitive decline, significant memory and behavioral changes.</span>
         </li>        
     </ul>
-       
     """, unsafe_allow_html=True)
-    col1, col2= st.columns([1,1])
+    col1, col2 = st.columns([1,1])
 
     with col1:
         if st.button("Proceed to Scan"):
@@ -259,7 +286,6 @@ def guidelines_page():
             st.toast("✅ Redirecting to Previous Scan Page...", icon="✅")
             time.sleep(0.5)         
             st.rerun()
-    
 
 def scan_page():
     add_responsive_styles()
@@ -301,9 +327,16 @@ def scan_page():
             st.rerun()
 
 def get_previous_applications(email):
-    applications = applications_collection.find({"user_email": email}).sort("submitted_at", -1)
-    return list(applications)
-            
+    if client is None:
+        st.error("Database connection is not available.")
+        return []
+    try:
+        applications = applications_collection.find({"user_email": email}).sort("submitted_at", -1)
+        return list(applications)
+    except Exception as e:
+        st.error(f"Error retrieving applications: {str(e)}")
+        return []
+
 def previous_scan_page():
     add_responsive_styles()
     st.title("📜 Previous Scan Details")
@@ -324,8 +357,7 @@ def previous_scan_page():
             st.write(f"**Name:** {application.get('name', 'N/A')}")
             st.write(f"**Age:** {application.get('age', 'N/A')}")
             st.write(f"**Place:** {application.get('place', 'N/A')}")
-            st.write(f"**Phone Number:** {application.get('phone_number', 'N/A')}")
-            st.write(f"**Prediction:** {application.get('prediction', 'N/A')}")
+            st.write(f"**Phone Number:** {application.get Shet.write(f"**Prediction:** {application.get('prediction', 'N/A')}")
             st.write(f"**Confidence:** {application.get('confidence', 0.0):.2f}%")
 
             if "image_base64" in application and application["image_base64"]:
@@ -338,7 +370,7 @@ def previous_scan_page():
             else:
                 st.info(f"No MRI image available for scan {idx}.")
 
-            st.markdown("---")  # Separator between scans
+            st.markdown("---")  
     else:
         st.info("No previous scans found.")
 
@@ -352,7 +384,6 @@ def application_form_page():
     add_responsive_styles()
     st.title("📝 Application Form")
 
-
     name = st.text_input("Name")
     age = st.text_input("Age")
     place = st.text_input("Place")
@@ -361,9 +392,6 @@ def application_form_page():
     uploaded_image = st.session_state.get("uploaded_image", None)
     prediction_label = st.session_state.get("prediction_label", "N/A")
     prediction_confidence = st.session_state.get("prediction_confidence", 0.0)
-
-
-    
 
     if uploaded_image:
         st.subheader("Uploaded MRI Scan:")
@@ -383,7 +411,7 @@ def application_form_page():
                 "phone_number": phone_number,
                 "prediction": prediction_label,
                 "confidence": float(prediction_confidence),
-                "image_base64": encode_image(uploaded_image),
+                "image_base64": encode_image(uploaded_image) if uploaded_image else "",
                 "submitted_at": datetime.now()
             }
             save_application_form(form_data)
@@ -391,7 +419,7 @@ def application_form_page():
         else:
             st.error("Please fill all the fields.")
 
-        if name and age and place and phone_number:
+        if name and age and place and phone_number and uploaded_image:
             # Save the uploaded image temporarily
             temp_image_path = "temp_mri_image.jpg"
             uploaded_image.save(temp_image_path)
@@ -399,25 +427,21 @@ def application_form_page():
             # Generate the PDF report
             pdf_path = generate_pdf(name, age, place, phone_number, temp_image_path, prediction_label, prediction_confidence)
 
-            # Provide the PDF as a downloadable file using Streamlit's download_button
             with open(pdf_path, "rb") as pdf_file:
                 st.download_button(
-                    label="📥 Download",  # Label for the button
-                    data=pdf_file,  # File content to be downloaded
-                    file_name="Alzheimer_MRI_Report.pdf",  # The name of the file when downloaded
-                    mime="application/pdf"  # MIME type for PDF
+                    label="📥 Download PDF", 
+                    data=pdf_file,  
+                    file_name="Alzheimer_MRI_Report.pdf", 
+                    mime="application/pdf" 
                 )
         else:
-            st.warning("⚠ Please fill out all details before downloading.")
+            st.warning("⚠ Please fill out all details and upload an image before downloading.")
 
-
-
-    if st.button("🔁  Scan Page"):
+    if st.button("🔁 Scan Page"):
         st.session_state["page"] = "scan"
         st.toast("✅ Back to Scan Page...", icon="✅")
         time.sleep(0.5)           
         st.rerun()
-
 
 def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confidence):
     pdf = FPDF()
@@ -468,14 +492,15 @@ def main():
     if "page" not in st.session_state:
         st.session_state["page"] = "Home"
 
-    pages = {"Home": home_page, 
-            "Login": login_page, 
-            "Signup": signup_page, 
-            "guidelines": guidelines_page, 
-            "scan": scan_page,   
-            "application_form": application_form_page, 
-            "previous_scan": previous_scan_page
-            }
+    pages = {
+        "Home": home_page, 
+        "Login": login_page, 
+        "Signup": signup_page, 
+        "guidelines": guidelines_page, 
+        "scan": scan_page,   
+        "application_form": application_form_page, 
+        "previous_scan": previous_scan_page
+    }
     pages[st.session_state["page"]]()
 
 if __name__ == "__main__":
