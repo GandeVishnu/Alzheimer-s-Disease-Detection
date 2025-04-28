@@ -1,4 +1,11 @@
+streamlit
+numpy
 tensorflow
+PIL
 fpdf
-MongoClient
 pymongo 
+MongoClient
+base64
+time
+datetime
+BytesIO
