@@ -1,3 +1,4 @@
 tensorflow
 fpdf
 MongoClient
+pymongo 
