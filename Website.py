@@ -367,7 +367,7 @@ def application_form_page():
 
     if uploaded_image:
         st.subheader("Uploaded MRI Scan:")
-        st.image(uploaded_image, caption="MRI Image", use_column_width=True)
+        st.image(uploaded_image, caption="MRI Image", use_container_width =True)
 
         st.subheader("Diagnosis Result:")
         st.write(f"🟢 **Prediction:** {prediction_label}")
