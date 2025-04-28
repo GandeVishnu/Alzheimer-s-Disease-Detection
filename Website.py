@@ -2,8 +2,8 @@ import streamlit as st
 import os
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import load_model 
-from tensorflow.keras.applications.efficientnet import preprocess_input  
+from tensorflow.keras.models import load_model # type: ignore
+from tensorflow.keras.applications.efficientnet import preprocess_input  # type: ignore
 from PIL import Image
 from fpdf import FPDF
 import base64
@@ -12,16 +12,17 @@ from datetime import datetime
 from pymongo import MongoClient
 from io import BytesIO
 
-MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/"   
+# -------------------- MongoDB Setup --------------------
+MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/"   # or your Atlas URL
 client = MongoClient(MONGO_URL)
-db = client["AlzheimersDiseaseDetection"]   
-users_collection = db["users"]   
-applications_collection = db["applications"]   
-
+db = client["AlzheimersDiseaseDetection"]    # Database
+users_collection = db["users"]   # Users collection
+applications_collection = db["applications"]   # Application form collection
+#---
 page_title="Alzheimers Disease Detection"
 page_icon="🧠"
 st.set_page_config(page_title=page_title,page_icon=page_icon)
-MODEL_PATH = "20_04_2025_ADNI_best_model.keras"
+MODEL_PATH = r"F:\ADNI_5_FINAL_FOLDER\20_04_2025_ADNI_best_model.keras"
 IMG_SIZE = (224, 224)
 class_labels = ['Final AD JPEG', 'Final CN JPEG', 'Final EMCI JPEG', 'Final LMCI JPEG', 'Final MCI JPEG']
 
@@ -60,7 +61,7 @@ def decode_image(encoded_image):
     buffer = BytesIO(decoded)
     image = Image.open(buffer)
     return image
-
+# -------------------- MongoDB Functions --------------------
 def save_user(email, name, password):
     user = {"email": email, "name": name, "password": password}
     users_collection.insert_one(user)
@@ -75,7 +76,7 @@ def save_application_form(data):
 def get_previous_application(email):
     application = applications_collection.find_one(
         {"user_email": email},
-        sort=[("submitted_at", -1)] 
+        sort=[("submitted_at", -1)]  # Sort by submitted_at in descending order to get the most recent
     )
     return application    
 
@@ -122,17 +123,17 @@ def add_responsive_styles():
 
             div.stButton > button {{
                 width: 100%;
-                background-color: #0B5ED7 !important;
-                color: white !important;
-                padding: 12px !important;
-                font-size: 18px !important;
-                font-weight: bold !important;
-                border-radius: 8px !important;
-                border: none !important;
+                background-color: #0B5ED7;
+                color: white;
+                padding: 12px;
+                font-size: 18px;
+                font-weight: bold;
+                border-radius: 8px;
+                border: none;
             }}
             div.stButton > button:hover {{
-                background-color: #084298 !important;
-                transition: 0.3s ease !important;
+                background-color: #084298;
+                transition: 0.3s ease;
             }}
 
 
@@ -176,7 +177,7 @@ def login_page():
             st.toast("✅ Login Successful! Redirecting...", icon="✅")
             time.sleep(0.5)  
             st.session_state["Name"] = users[email]["name"]
-            st.session_state["Email"] = email  
+            st.session_state["Email"] = email  # Store the email in session state
             st.session_state["page"] = "guidelines"
             st.rerun()
         else:
@@ -337,7 +338,7 @@ def previous_scan_page():
             else:
                 st.info(f"No MRI image available for scan {idx}.")
 
-            st.markdown("---")  
+            st.markdown("---")  # Separator between scans
     else:
         st.info("No previous scans found.")
 
@@ -398,12 +399,13 @@ def application_form_page():
             # Generate the PDF report
             pdf_path = generate_pdf(name, age, place, phone_number, temp_image_path, prediction_label, prediction_confidence)
 
+            # Provide the PDF as a downloadable file using Streamlit's download_button
             with open(pdf_path, "rb") as pdf_file:
                 st.download_button(
-                    label="📥 Download", 
-                    data=pdf_file,  
-                    file_name="Alzheimer_MRI_Report.pdf", 
-                    mime="application/pdf" 
+                    label="📥 Download",  # Label for the button
+                    data=pdf_file,  # File content to be downloaded
+                    file_name="Alzheimer_MRI_Report.pdf",  # The name of the file when downloaded
+                    mime="application/pdf"  # MIME type for PDF
                 )
         else:
             st.warning("⚠ Please fill out all details before downloading.")
