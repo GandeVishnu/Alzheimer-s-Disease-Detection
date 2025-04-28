@@ -22,7 +22,7 @@ applications_collection = db["applications"]   # Application form collection
 page_title="Alzheimers Disease Detection"
 page_icon="🧠"
 st.set_page_config(page_title=page_title,page_icon=page_icon)
-MODEL_PATH = r"F:\ADNI_5_FINAL_FOLDER\20_04_2025_ADNI_best_model.keras"
+MODEL_PATH = "20_04_2025_ADNI_best_model.keras"
 IMG_SIZE = (224, 224)
 class_labels = ['Final AD JPEG', 'Final CN JPEG', 'Final EMCI JPEG', 'Final LMCI JPEG', 'Final MCI JPEG']
 
