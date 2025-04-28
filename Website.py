@@ -17,6 +17,13 @@ import pymongo.errors
 st.set_page_config(page_title="Alzheimers Disease Detection", page_icon="🧠")
 
 # -------------------- MongoDB Setup --------------------
+
+MONGO_URL = "mongodb+srv://gandevishnu2002:AllCHcrwT8kP1ocf@alzheimersdiseasedetect.oizmrdg.mongodb.net/"   
+client = MongoClient(MONGO_URL)
+db = client["AlzheimersDiseaseDetection"]   
+users_collection = db["users"]   
+applications_collection = db["applications"]  
+
 def initialize_mongo():
     try:
         # Use Streamlit secrets for MongoDB URL (recommended for Streamlit Cloud)
