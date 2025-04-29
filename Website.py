@@ -174,7 +174,7 @@ def login_page():
     if st.button("Login"):
 
         if email in users and users[email]["password"] == password:
-            st.toast("✅ Login Successful! Redirecting...", icon="✅")
+            st.toast("✅ Login Successful! Redirecting..", icon="✅")
             time.sleep(0.5)  
             st.session_state["Name"] = users[email]["name"]
             st.session_state["Email"] = email  # Store the email in session state
