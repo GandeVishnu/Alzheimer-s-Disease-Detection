@@ -413,8 +413,8 @@ def application_form_page():
 
 
     if st.button("🔁  Scan Page"):
-        st.session_state["page"] = "scan"
-        st.toast("✅ Back to Scan Page...", icon="✅")
+        st.session_state["page"] = "guidelines"
+        st.toast("✅ Back to Guidelines Page...", icon="✅")
         time.sleep(0.5)           
         st.rerun()
 
