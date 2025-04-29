@@ -412,7 +412,7 @@ def application_form_page():
 
 
 
-    if st.button("🔁  Scan Page"):
+    if st.button("🔁 Guidelines Page"):
         st.session_state["page"] = "guidelines"
         st.toast("✅ Back to Guidelines Page...", icon="✅")
         time.sleep(0.5)           
