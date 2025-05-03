@@ -332,7 +332,11 @@ def previous_scan_page():
             submitted_at = application.get("submitted_at")
             if submitted_at:
                 try:
+                     # Convert to user local time if needed
+                    user_timezone = pytz.timezone("Asia/Kolkata")  # Ensure you handle user timezone correctly
+                    submitted_at = submitted_at.astimezone(user_timezone)
                     submitted_str = submitted_at.strftime("%d-%m-%Y %I:%M %p")
+                    
                 except Exception:
                     submitted_str = str(submitted_at)  # fallback for unexpected type
             else:
