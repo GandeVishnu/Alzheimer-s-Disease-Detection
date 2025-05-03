@@ -13,7 +13,7 @@ from pymongo import MongoClient
 from io import BytesIO
 
 # -------------------- MongoDB Setup --------------------
-MONGO_URL = os.getenv("MONGO_URL") or st.secrets.get("MONGO_URL")  # Fallback to Streamlit secrets for deployment
+MONGO_URL = st.secrets.get("MONGO_URL")  # Fallback to Streamlit secrets for deployment
 if not MONGO_URL:
     st.error("MongoDB URL not found. Please set MONGO_URL in .env or Streamlit secrets.")
     st.stop()
