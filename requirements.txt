@@ -5,3 +5,4 @@ pillow
 fpdf
 pymongo
 python-dotenv
+pytz
