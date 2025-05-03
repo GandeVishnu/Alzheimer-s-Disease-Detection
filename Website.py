@@ -146,7 +146,7 @@ def add_responsive_styles():
                 bottom: 0;
                 left: 0;
                 right: 0;
-                background-color: #f9f9f9;
+                background-color: #A8D5E3;
                 text-align: center;
                 padding: 10px;
                 font-size: 14px;
