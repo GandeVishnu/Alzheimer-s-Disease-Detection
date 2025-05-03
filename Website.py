@@ -90,16 +90,18 @@ def add_responsive_styles():
                 caret-color: #000 !important;
                 color: #000 !important;
             }} 
-            /* Set the background color */
             .stApp {{
                 background-color: {bg_color} !important;
             }}
             .main-content {{
                 padding-bottom: 30px;
+                max-height: 75vh;
+                overflow-y: auto;
+                padding-right: 15px;
             }}
             input[type="text"], input[type="password"], textarea {{
-                background-color: white !important;  /* White background */
-                color: #000000 !important;  /* Black text */
+                background-color: white !important;
+                color: #000000 !important;
                 border-radius: 8px !important;
                 padding: 10px !important;
                 border: 2px solid #0e3c4a !important;
