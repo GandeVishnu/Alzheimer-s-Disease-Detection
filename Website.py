@@ -443,6 +443,7 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
     current_datetime = datetime.now(india_timezone).strftime("%d-%m-%Y %H:%M:%S")
     
     pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
 
     pdf.set_font("Arial", "B", 16)
@@ -474,7 +475,7 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
     if image_path:
         pdf.set_font("Arial", "B", 14)
         pdf.cell(200, 10, "MRI Scan:", ln=True)
-        pdf.image(image_path, x=60, w=95)  
+        pdf.image(image_path, x=60, w=100)  
         pdf.ln(10)
 
     pdf.set_font("Arial", "I", 10)
@@ -482,6 +483,7 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
    
     pdf_filename = "Alzheimer_MRI_Report.pdf"
     pdf.output(pdf_filename)
+
     return pdf_filename
 
 
