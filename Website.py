@@ -495,7 +495,7 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
     
 
     pdf.output(pdf_path) 
-    return pdf_filename
+    return pdf_path
 
 def main():
     if "page" not in st.session_state:
