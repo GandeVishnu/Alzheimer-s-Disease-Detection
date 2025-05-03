@@ -1,18 +1,17 @@
 import streamlit as st
-import os
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import load_model # type: ignore
-from tensorflow.keras.applications.efficientnet import preprocess_input  # type: ignore
+from tensorflow.keras.models import load_model
+from tensorflow.keras.applications.efficientnet import preprocess_input
 from PIL import Image
 from fpdf import FPDF
 import base64
 import time
-from datetime import datetime, timezone
+from datetime import datetime
 import pytz
 from pymongo import MongoClient
 from io import BytesIO
-
+import re
 
 # -------------------- MongoDB Setup --------------------
 MONGO_URL = st.secrets.get("MONGO_URL")  # Fallback to Streamlit secrets for deployment
@@ -30,8 +29,6 @@ st.set_page_config(page_title=page_title,page_icon=page_icon)
 MODEL_PATH = "20_04_2025_ADNI_best_model.keras"
 IMG_SIZE = (224, 224)
 class_labels = ['Final AD JPEG', 'Final CN JPEG', 'Final EMCI JPEG', 'Final LMCI JPEG', 'Final MCI JPEG']
-
- 
 
 @st.cache_resource
 def load_prediction_model():
@@ -55,7 +52,6 @@ def predict(image):
     return class_labels[predicted_class], confidence, predictions
 
 def encode_image(image):
-    from io import BytesIO
     buffer = BytesIO()
     image.save(buffer, format="JPEG")
     encoded = base64.b64encode(buffer.getvalue()).decode()
@@ -66,6 +62,7 @@ def decode_image(encoded_image):
     buffer = BytesIO(decoded)
     image = Image.open(buffer)
     return image
+
 # -------------------- MongoDB Functions --------------------
 def save_user(email, name, password):
     user = {"email": email, "name": name, "password": password}
@@ -84,8 +81,6 @@ def get_previous_application(email):
         sort=[("submitted_at", -1)]  # Sort by submitted_at in descending order to get the most recent
     )
     return application    
-
-#---
 
 def add_responsive_styles():
     bg_color = "#A8D5E3"  
@@ -154,13 +149,9 @@ def add_responsive_styles():
             }}
         </style>
         <div class="footer">
-            &copy; 2025 alzheimers-disease-detection
+            © 2025 alzheimers-disease-detection
         </div>
     """, unsafe_allow_html=True)
-
-
-
-
 
 def home_page():
     add_responsive_styles()
@@ -190,7 +181,6 @@ def login_page():
     users = load_users()
 
     if st.button("Login"):
-
         if email in users and users[email]["password"] == password:
             st.toast("✅ Login Successful! Redirecting..", icon="✅")
             time.sleep(0.5)  
@@ -218,6 +208,7 @@ def signup_page():
     users = load_users()
     
     if st.button("Signup"):
+        # Validate inputs
         if not name or not email or not password or not confirm_password:
             st.error("All fields are required.")
         elif email in users:
@@ -225,11 +216,16 @@ def signup_page():
         elif password != confirm_password:
             st.error("Passwords do not match!")
         else:
-            save_user(email, name, password)
-            st.toast("✅ Signup Successful! Redirecting to Home...", icon="✅")
-            time.sleep(0.5)  
-            st.session_state["page"] = "Home"
-            st.rerun()
+            # Password validation: must have uppercase, lowercase, special character
+            password_pattern = r"^(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?/~`]).{1,}$"
+            if not re.match(password_pattern, password):
+                st.error("Password must contain at least one uppercase letter, one lowercase letter, and one special character.")
+            else:
+                save_user(email, name, password)
+                st.toast("✅ Signup Successful! Redirecting to Home...", icon="✅")
+                time.sleep(0.5)  
+                st.session_state["page"] = "Home"
+                st.rerun()
 
     if st.button("Back to Home"):
         st.session_state["page"] = "Home"
@@ -261,7 +257,6 @@ def guidelines_page():
             <span style="color:#000000;">Alzheimer’s Disease – Advanced cognitive decline, significant memory and behavioral changes.</span>
         </li>        
     </ul>
-       
     """, unsafe_allow_html=True)
     col1, col2= st.columns([1,1])
 
@@ -277,7 +272,6 @@ def guidelines_page():
             st.toast("✅ Redirecting to Previous Scan Page...", icon="✅")
             time.sleep(0.5)         
             st.rerun()
-    
 
 def scan_page():
     add_responsive_styles()
@@ -318,8 +312,6 @@ def scan_page():
             time.sleep(0.5)          
             st.rerun()
 
-
-
 def get_previous_applications(email):
     applications = applications_collection.find({"user_email": email}).sort("submitted_at", -1)
     return list(applications)
@@ -336,21 +328,17 @@ def previous_scan_page():
             st.rerun()
         return
 
-    applications = get_previous_applications(email)
-    
+    applications = get@index
     if applications:
         for idx, application in enumerate(applications, 1):
-            # Format timestamp if available
             submitted_at = application.get("submitted_at")
             if submitted_at:
                 try:
-                     # Convert to user local time if needed
-                    user_timezone = pytz.timezone("Asia/Kolkata")  # Ensure you handle user timezone correctly
+                    user_timezone = pytz.timezone("Asia/Kolkata")
                     submitted_at = submitted_at.astimezone(user_timezone)
                     submitted_str = submitted_at.strftime("%d-%m-%Y %I:%M %p")
-                    
                 except Exception:
-                    submitted_str = str(submitted_at)  # fallback for unexpected type
+                    submitted_str = str(submitted_at)
             else:
                 submitted_str = "N/A"
 
@@ -372,7 +360,7 @@ def previous_scan_page():
             else:
                 st.info(f"No MRI image available for scan {idx}.")
 
-            st.markdown("---")  # Separator between scans
+            st.markdown("---")
     else:
         st.info("No previous scans found.")
 
@@ -381,7 +369,6 @@ def previous_scan_page():
         st.toast("✅ Back to Guidelines Page...", icon="✅")
         time.sleep(0.5)
         st.rerun()
-
 
 def application_form_page():
     add_responsive_styles()
@@ -408,13 +395,33 @@ def application_form_page():
         # Validate fields
         if not all([name, age, place, phone_number]):
             st.error("Please fill all the fields.")
+        elif not name.strip():
+            st.error("Name cannot be empty or contain only spaces.")
+        elif not place.strip():
+            st.error("Place cannot be empty or contain only spaces.")
         else:
-            submission_time = datetime.now(pytz.timezone("Asia/Kolkata"))
+            # Validate age as an integer
+            try:
+                age_int = int(age)
+                if age_int <= 0:
+                    st.error("Age must be a positive integer.")
+                    return
+            except ValueError:
+                st.error("Age must be a valid integer.")
+                return
+
+            # Validate phone number as 10 digits
+            phone_pattern = r"^\d{10}$"
+            if not re.match(phone_pattern, phone_number):
+                st.error("Phone number must be exactly 10 digits.")
+                return
+
+            submission_time = datetime.now(pytz.timezone("Asia f Kolkata"))
 
             form_data = {
                 "user_email": st.session_state.get("Email", ""),
                 "name": name,
-                "age": age,
+                "age": age_int,
                 "place": place,
                 "phone_number": phone_number,
                 "prediction": prediction_label,
@@ -446,11 +453,7 @@ def application_form_page():
         time.sleep(0.5)
         st.rerun()
 
-
-
 def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confidence):
-
-    # Get current time in India timezone
     india_timezone = pytz.timezone('Asia/Kolkata')
     current_time = datetime.now(india_timezone)
     formatted_datetime = current_time.strftime("%d-%m-%Y %H:%M:%S")
@@ -463,8 +466,6 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
     pdf.cell(200, 10, "Alzheimer's MRI Scan Report", ln=True, align="C")
     pdf.ln(10)
 
-    # Adding Date and Time
-    current_datetime = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
     pdf.set_font("Arial", "I", 10)
     pdf.cell(0, 10, f"Report Generated: {formatted_datetime}", ln=True)
     pdf.ln(10)
@@ -498,7 +499,6 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
     pdf.output(pdf_filename)
 
     return pdf_filename
-
 
 def main():
     if "page" not in st.session_state:
