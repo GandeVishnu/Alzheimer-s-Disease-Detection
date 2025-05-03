@@ -8,7 +8,7 @@ from PIL import Image
 from fpdf import FPDF
 import base64
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pymongo import MongoClient
 from io import BytesIO
 
@@ -433,7 +433,7 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
     pdf.ln(10)
 
     # Adding Date and Time
-    current_datetime = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+    current_datetime = datetime.now(timezone.utc).strftime("%d-%m-%Y %H:%M:%S UTC")
     pdf.set_font("Arial", "I", 10)
     pdf.cell(0, 10, f"Report Generated: {current_datetime}", ln=True)
     pdf.ln(10)
