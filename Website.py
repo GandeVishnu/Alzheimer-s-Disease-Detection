@@ -312,6 +312,10 @@ def scan_page():
 
 def get_previous_applications(email):
     applications = applications_collection.find({"user_email": email}).sort("submitted_at", -1)
+    for application in applications:
+        # Convert the datetime to a formatted string if needed
+        if isinstance(application["submitted_at"], datetime):
+            application["submitted_at"] = application["submitted_at"].strftime("%d-%m-%Y %H:%M:%S")
     return list(applications)
             
 def previous_scan_page():
@@ -385,7 +389,7 @@ def application_form_page():
 
     if st.button("📥 Download Report"):
         if name and age and place and phone_number:
-            submission_time = datetime.now(timezone.utc).replace(microsecond=0)
+            submission_time = datetime.now(pytz.timezone("Asia/Kolkata"))  # Timezone-aware datetime
             form_data = {
                 "user_email": st.session_state.get("Email", ""),
                 "name": name,
@@ -395,7 +399,7 @@ def application_form_page():
                 "prediction": prediction_label,
                 "confidence": float(prediction_confidence),
                 "image_base64": encode_image(uploaded_image),
-                "submitted_at":  datetime.now(pytz.timezone("Asia/Kolkata")).strftime("%d-%m-%Y %H:%M:%S")
+                "submitted_at": submission_time
             }
             save_application_form(form_data)
             st.success("Application form and scan successfully saved!")
