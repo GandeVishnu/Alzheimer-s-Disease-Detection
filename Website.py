@@ -141,8 +141,22 @@ def add_responsive_styles():
                 transition: 0.3s ease;
             }}
 
-
+            .footer {{
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background-color: #f9f9f9;
+                text-align: center;
+                padding: 10px;
+                font-size: 14px;
+                color: #888;
+                border-top: 1px solid #eaeaea;
+            }}
         </style>
+        <div class="footer">
+            &copy; 2025 alzheimers-disease-detection
+        </div>
     """, unsafe_allow_html=True)
 
 
