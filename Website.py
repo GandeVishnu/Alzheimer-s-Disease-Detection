@@ -146,12 +146,11 @@ def add_responsive_styles():
                 bottom: 0;
                 left: 0;
                 right: 0;
-                background-color: black;
+                background-color:#A8D5E3;
                 text-align: center;
                 padding: 10px;
                 font-size: 14px;
                 color: #888;
-                border-top: 1px solid #eaeaea;
             }}
         </style>
         <div class="footer">
