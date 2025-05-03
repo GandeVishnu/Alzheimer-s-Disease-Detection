@@ -306,11 +306,12 @@ def scan_page():
             time.sleep(0.5)          
             st.rerun()
 
+
+
 def get_previous_applications(email):
     applications = applications_collection.find({"user_email": email}).sort("submitted_at", -1)
-   
     return list(applications)
-            
+
 def previous_scan_page():
     add_responsive_styles()
     st.title("📜 Previous Scan Details")
@@ -327,7 +328,17 @@ def previous_scan_page():
     
     if applications:
         for idx, application in enumerate(applications, 1):
-            st.markdown(f"### Scan {idx} - Submitted: {application.get('submitted_at', 'N/A')}")
+            # Format timestamp if available
+            submitted_at = application.get("submitted_at")
+            if submitted_at:
+                try:
+                    submitted_str = submitted_at.strftime("%d-%m-%Y %I:%M %p")
+                except Exception:
+                    submitted_str = str(submitted_at)  # fallback for unexpected type
+            else:
+                submitted_str = "N/A"
+
+            st.markdown(f"### Scan {idx} - Submitted: {submitted_str}")
             st.write(f"**Name:** {application.get('name', 'N/A')}")
             st.write(f"**Age:** {application.get('age', 'N/A')}")
             st.write(f"**Place:** {application.get('place', 'N/A')}")
@@ -355,10 +366,10 @@ def previous_scan_page():
         time.sleep(0.5)
         st.rerun()
 
+
 def application_form_page():
     add_responsive_styles()
     st.title("📝 Application Form")
-
 
     name = st.text_input("Name")
     age = st.text_input("Age")
@@ -369,20 +380,21 @@ def application_form_page():
     prediction_label = st.session_state.get("prediction_label", "N/A")
     prediction_confidence = st.session_state.get("prediction_confidence", 0.0)
 
-
-    
-
     if uploaded_image:
         st.subheader("Uploaded MRI Scan:")
-        st.image(uploaded_image, caption="MRI Image", use_container_width =True)
+        st.image(uploaded_image, caption="MRI Image", use_container_width=True)
 
         st.subheader("Diagnosis Result:")
         st.write(f"🟢 **Prediction:** {prediction_label}")
         st.write(f"📊 **Confidence:** {prediction_confidence:.2f}%")
 
     if st.button("📥 Download Report"):
-        if name and age and place and phone_number:
-            submission_time = datetime.now(pytz.timezone("Asia/Kolkata"))  # Timezone-aware datetime
+        # Validate fields
+        if not all([name, age, place, phone_number]):
+            st.error("Please fill all the fields.")
+        else:
+            submission_time = datetime.now(pytz.timezone("Asia/Kolkata"))
+
             form_data = {
                 "user_email": st.session_state.get("Email", ""),
                 "name": name,
@@ -391,40 +403,33 @@ def application_form_page():
                 "phone_number": phone_number,
                 "prediction": prediction_label,
                 "confidence": float(prediction_confidence),
-                "image_base64": encode_image(uploaded_image),
+                "image_base64": encode_image(uploaded_image) if uploaded_image else None,
                 "submitted_at": submission_time
             }
+
             save_application_form(form_data)
             st.success("Application form and scan successfully saved!")
-        else:
-            st.error("Please fill all the fields.")
 
-        if name and age and place and phone_number:
-            # Save the uploaded image temporarily
+            # Save uploaded image temporarily
             temp_image_path = "temp_mri_image.jpg"
             uploaded_image.save(temp_image_path)
 
-            # Generate the PDF report
+            # Generate and offer PDF for download
             pdf_path = generate_pdf(name, age, place, phone_number, temp_image_path, prediction_label, prediction_confidence)
-
-            # Provide the PDF as a downloadable file using Streamlit's download_button
             with open(pdf_path, "rb") as pdf_file:
                 st.download_button(
-                    label="📥 Download",  # Label for the button
-                    data=pdf_file,  # File content to be downloaded
-                    file_name="Alzheimer_MRI_Report.pdf",  # The name of the file when downloaded
-                    mime="application/pdf"  # MIME type for PDF
+                    label="📥 Download Report",
+                    data=pdf_file,
+                    file_name="Alzheimer_MRI_Report.pdf",
+                    mime="application/pdf"
                 )
-        else:
-            st.warning("⚠ Please fill out all details before downloading.")
-
-
 
     if st.button("🔁 Guidelines Page"):
         st.session_state["page"] = "guidelines"
         st.toast("✅ Back to Guidelines Page...", icon="✅")
-        time.sleep(0.5)           
+        time.sleep(0.5)
         st.rerun()
+
 
 
 def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confidence):
