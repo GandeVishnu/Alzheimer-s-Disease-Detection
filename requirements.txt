@@ -1,6 +1,7 @@
 streamlit
-tensorflow
 numpy
+tensorflow
 pillow
 fpdf
 pymongo
+python-dotenv
