@@ -455,8 +455,8 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
 
     if image_path:
         pdf.set_font("Arial", "B", 14)
-        pdf.cell(200, 10, "MRI Scan:", ln=True)
-        pdf.image(image_path, x=55, w=100)  
+        pdf.cell(200, 9, "MRI Scan:", ln=True)
+        pdf.image(image_path, x=60, w=100)  
         pdf.ln(10)
 
     pdf.set_font("Arial", "I", 10)
