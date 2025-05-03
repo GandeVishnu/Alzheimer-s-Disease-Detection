@@ -132,7 +132,6 @@ def add_responsive_styles():
                 transition: 0.3s ease;
             }}
             .footer {{
-                position: fixed;
                 bottom: 0;
                 left: 0;
                 right: 0;
