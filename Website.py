@@ -84,7 +84,6 @@ def get_previous_application(email):
 
 def add_responsive_styles():
     bg_color = "#A8D5E3"  
-
     st.markdown(f"""
         <style>
             input, textarea {{
@@ -103,7 +102,6 @@ def add_responsive_styles():
                 border: 2px solid #0e3c4a !important;
                 font-size: 16px !important;
             }}
-
             .title-text {{
                 font-size: 50px;
                 font-weight: bold;
@@ -113,14 +111,12 @@ def add_responsive_styles():
                 letter-spacing: 3px;
                 margin-top: 30px;
             }}
-
             .subtitle-text {{
                 font-size: 25px;
                 text-align: center;
                 color: Tomato;
                 margin-bottom: 20px;
             }}
-
             div.stButton > button {{
                 width: 100%;
                 background-color: #0B5ED7;
@@ -135,7 +131,6 @@ def add_responsive_styles():
                 background-color: #084298;
                 transition: 0.3s ease;
             }}
-
             .footer {{
                 position: fixed;
                 bottom: 0;
@@ -165,7 +160,6 @@ def home_page():
             st.toast("✅ Moving to Login Page", icon="✅")   
             time.sleep(0.5) 
             st.rerun()
-
     with col2:
         if st.button("Signup"):
             st.session_state["page"] = "Signup"
@@ -179,13 +173,12 @@ def login_page():
     email = st.text_input("Email", key="login_email")
     password = st.text_input("Password", type="password")  
     users = load_users()
-
     if st.button("Login"):
         if email in users and users[email]["password"] == password:
             st.toast("✅ Login Successful! Redirecting..", icon="✅")
             time.sleep(0.5)  
             st.session_state["Name"] = users[email]["name"]
-            st.session_state["Email"] = email  # Store the email in session state
+            st.session_state["Email"] = email
             st.session_state["page"] = "guidelines"
             st.rerun()
         else:
@@ -204,28 +197,29 @@ def signup_page():
     email = st.text_input("Email", key="signup_email")
     password = st.text_input("Password", type="password", key="signup_password")  
     confirm_password = st.text_input("Re-enter Password", type="password", key="signup_confirm_password")
-
     users = load_users()
     
     if st.button("Signup"):
-        # Validate inputs
-        if not name or not email or not password or not confirm_password:
-            st.error("All fields are required.")
-        elif email in users:
-            st.error("User already exists!")
+        # Validate name (non-empty string)
+        if not name or not name.strip():
+            st.error("Name cannot be empty.")
+        # Validate password (uppercase, lowercase, special character)
+        elif not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};:'\",.<>?]).+$", password):
+            st.error("Password must contain at least one uppercase letter, one lowercase letter, and one special character.")
+        # Validate re-enter password
         elif password != confirm_password:
             st.error("Passwords do not match!")
+        # Existing validations
+        elif not email:
+            st.error("Email is required.")
+        elif email in users:
+            st.error("User already exists!")
         else:
-            # Password validation: must have uppercase, lowercase, special character
-            password_pattern = r"^(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?/~`]).{1,}$"
-            if not re.match(password_pattern, password):
-                st.error("Password must contain at least one uppercase letter, one lowercase letter, and one special character.")
-            else:
-                save_user(email, name, password)
-                st.toast("✅ Signup Successful! Redirecting to Home...", icon="✅")
-                time.sleep(0.5)  
-                st.session_state["page"] = "Home"
-                st.rerun()
+            save_user(email, name, password)
+            st.toast("✅ Signup Successful! Redirecting to Home...", icon="✅")
+            time.sleep(0.5)  
+            st.session_state["page"] = "Home"
+            st.rerun()
 
     if st.button("Back to Home"):
         st.session_state["page"] = "Home"
@@ -239,7 +233,6 @@ def guidelines_page():
     st.markdown("""
         <h2 style="color: Tomato;">📋 What is Alzheimer's Disease?</h2>
     <p style="color: black;">Alzheimer's disease is a progressive brain disorder causing memory loss and cognitive decline.</p>
-
     <ul>
         <li><span style="color:#0B3D91; font-weight:bold;">Final CN JPEG:</span> 
             <span style="color:#000000;">Cognitively Normal – No cognitive impairment.</span>
@@ -259,7 +252,6 @@ def guidelines_page():
     </ul>
     """, unsafe_allow_html=True)
     col1, col2= st.columns([1,1])
-
     with col1:
         if st.button("Proceed to Scan"):
             st.session_state["page"] = "scan"
@@ -277,34 +269,29 @@ def scan_page():
     add_responsive_styles()
     st.title(f"📊 Alzheimer’s MRI Scan")
     uploaded_file = st.file_uploader("Upload Brain MRI Image", type=['jpg', 'jpeg', 'png'])
-
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
         st.image(image, caption='Uploaded Image', use_container_width=True)
         predicted_label, confidence, predictions = predict(image)
         st.markdown(f"### 🟢 Prediction: {predicted_label}")
         st.markdown(f"### 📊 Confidence: {confidence:.2f}%")
-
         st.session_state["uploaded_image"] = image
         st.session_state["prediction_label"] = predicted_label
         st.session_state["prediction_confidence"] = confidence
         
     col1, col2, col3 = st.columns([1,1,1])
-
     with col1:
         if st.button("⬅ Back"):
             st.session_state["page"] = "guidelines"
             st.toast("✅ Back to Guidelines Page...", icon="✅")
             time.sleep(0.5)  
             st.rerun()
-
     with col2:
         if st.button("📄 View Application Form"):
             st.session_state["page"] = "application_form"  
             st.toast("✅ Redirecting to Application Page...", icon="✅")   
             time.sleep(0.5)   
             st.rerun()
-
     with col3:
         if st.button("🚪 Sign Out"):
             st.session_state["page"] = "Home"
@@ -319,7 +306,6 @@ def get_previous_applications(email):
 def previous_scan_page():
     add_responsive_styles()
     st.title("📜 Previous Scan Details")
-    
     email = st.session_state.get("Email", "")
     if not email:
         st.error("Please log in to view previous scans.")
@@ -327,8 +313,7 @@ def previous_scan_page():
             st.session_state["page"] = "guidelines"
             st.rerun()
         return
-
-    applications = get@index
+    applications = get_previous_applications(email)
     if applications:
         for idx, application in enumerate(applications, 1):
             submitted_at = application.get("submitted_at")
@@ -341,7 +326,6 @@ def previous_scan_page():
                     submitted_str = str(submitted_at)
             else:
                 submitted_str = "N/A"
-
             st.markdown(f"### Scan {idx} - Submitted: {submitted_str}")
             st.write(f"**Name:** {application.get('name', 'N/A')}")
             st.write(f"**Age:** {application.get('age', 'N/A')}")
@@ -349,7 +333,6 @@ def previous_scan_page():
             st.write(f"**Phone Number:** {application.get('phone_number', 'N/A')}")
             st.write(f"**Prediction:** {application.get('prediction', 'N/A')}")
             st.write(f"**Confidence:** {application.get('confidence', 0.0):.2f}%")
-
             if "image_base64" in application and application["image_base64"]:
                 try:
                     st.subheader(f"MRI Scan {idx}:")
@@ -359,11 +342,9 @@ def previous_scan_page():
                     st.error(f"Error displaying image for scan {idx}: {str(e)}")
             else:
                 st.info(f"No MRI image available for scan {idx}.")
-
             st.markdown("---")
     else:
         st.info("No previous scans found.")
-
     if st.button("Back to Guidelines"):
         st.session_state["page"] = "guidelines"
         st.toast("✅ Back to Guidelines Page...", icon="✅")
@@ -373,55 +354,35 @@ def previous_scan_page():
 def application_form_page():
     add_responsive_styles()
     st.title("📝 Application Form")
-
     name = st.text_input("Name")
     age = st.text_input("Age")
     place = st.text_input("Place")
     phone_number = st.text_input("Phone Number")
-
     uploaded_image = st.session_state.get("uploaded_image", None)
     prediction_label = st.session_state.get("prediction_label", "N/A")
     prediction_confidence = st.session_state.get("prediction_confidence", 0.0)
-
     if uploaded_image:
         st.subheader("Uploaded MRI Scan:")
         st.image(uploaded_image, caption="MRI Image", use_container_width=True)
-
         st.subheader("Diagnosis Result:")
         st.write(f"🟢 **Prediction:** {prediction_label}")
         st.write(f"📊 **Confidence:** {prediction_confidence:.2f}%")
-
     if st.button("📥 Download Report"):
         # Validate fields
-        if not all([name, age, place, phone_number]):
-            st.error("Please fill all the fields.")
-        elif not name.strip():
-            st.error("Name cannot be empty or contain only spaces.")
-        elif not place.strip():
-            st.error("Place cannot be empty or contain only spaces.")
+        if not name or not name.strip():
+            st.error("Name cannot be empty.")
+        elif not age or not age.isdigit():
+            st.error("Age must be a valid integer.")
+        elif not place or not place.strip():
+            st.error("Place cannot be empty.")
+        elif not phone_number or not re.match(r"^\d{10}$", phone_number):
+            st.error("Phone number must be exactly 10 digits.")
         else:
-            # Validate age as an integer
-            try:
-                age_int = int(age)
-                if age_int <= 0:
-                    st.error("Age must be a positive integer.")
-                    return
-            except ValueError:
-                st.error("Age must be a valid integer.")
-                return
-
-            # Validate phone number as 10 digits
-            phone_pattern = r"^\d{10}$"
-            if not re.match(phone_pattern, phone_number):
-                st.error("Phone number must be exactly 10 digits.")
-                return
-
-            submission_time = datetime.now(pytz.timezone("Asia f Kolkata"))
-
+            submission_time = datetime.now(pytz.timezone("Asia/Kolkata"))
             form_data = {
                 "user_email": st.session_state.get("Email", ""),
                 "name": name,
-                "age": age_int,
+                "age": int(age),  # Convert to integer
                 "place": place,
                 "phone_number": phone_number,
                 "prediction": prediction_label,
@@ -429,15 +390,10 @@ def application_form_page():
                 "image_base64": encode_image(uploaded_image) if uploaded_image else None,
                 "submitted_at": submission_time
             }
-
             save_application_form(form_data)
             st.success("Application form and scan successfully saved!")
-
-            # Save uploaded image temporarily
             temp_image_path = "temp_mri_image.jpg"
             uploaded_image.save(temp_image_path)
-
-            # Generate and offer PDF for download
             pdf_path = generate_pdf(name, age, place, phone_number, temp_image_path, prediction_label, prediction_confidence)
             with open(pdf_path, "rb") as pdf_file:
                 st.download_button(
@@ -446,7 +402,6 @@ def application_form_page():
                     file_name="Alzheimer_MRI_Report.pdf",
                     mime="application/pdf"
                 )
-
     if st.button("🔁 Guidelines Page"):
         st.session_state["page"] = "guidelines"
         st.toast("✅ Back to Guidelines Page...", icon="✅")
@@ -457,19 +412,15 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
     india_timezone = pytz.timezone('Asia/Kolkata')
     current_time = datetime.now(india_timezone)
     formatted_datetime = current_time.strftime("%d-%m-%Y %H:%M:%S")
-    
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
-
     pdf.set_font("Arial", "B", 16)
     pdf.cell(200, 10, "Alzheimer's MRI Scan Report", ln=True, align="C")
     pdf.ln(10)
-
     pdf.set_font("Arial", "I", 10)
     pdf.cell(0, 10, f"Report Generated: {formatted_datetime}", ln=True)
     pdf.ln(10)
-
     pdf.set_font("Arial", "B", 12)
     pdf.cell(0, 10, "Patient Details:", ln=True)
     pdf.set_font("Arial", "", 12)
@@ -478,40 +429,35 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
     pdf.cell(0, 10, f"Place: {place}", ln=True)
     pdf.cell(0, 10, f"Phone Number: {phone_number}", ln=True)
     pdf.ln(10)
-
     pdf.set_font("Arial", "B", 12)
     pdf.cell(0, 10, "Diagnosis Result:", ln=True)
     pdf.set_font("Arial", "", 12)
     pdf.cell(0, 10, f"Prediction: {diagnosis}", ln=True)
     pdf.cell(0, 10, f"Confidence: {confidence:.2f}%", ln=True)
     pdf.ln(10)
-
     if image_path:
         pdf.set_font("Arial", "B", 14)
         pdf.cell(200, 10, "MRI Scan:", ln=True)
         pdf.image(image_path, x=60, w=100)  
         pdf.ln(10)
-
     pdf.set_font("Arial", "I", 10)
     pdf.cell(200, 10, "This report is generated by the Alzheimer's MRI Analysis System.", ln=True, align="C")    
-   
     pdf_filename = "Alzheimer_MRI_Report.pdf"
     pdf.output(pdf_filename)
-
     return pdf_filename
 
 def main():
     if "page" not in st.session_state:
         st.session_state["page"] = "Home"
-
-    pages = {"Home": home_page, 
-            "Login": login_page, 
-            "Signup": signup_page, 
-            "guidelines": guidelines_page, 
-            "scan": scan_page,   
-            "application_form": application_form_page, 
-            "previous_scan": previous_scan_page
-            }
+    pages = {
+        "Home": home_page, 
+        "Login": login_page, 
+        "Signup": signup_page, 
+        "guidelines": guidelines_page, 
+        "scan": scan_page,   
+        "application_form": application_form_page, 
+        "previous_scan": previous_scan_page
+    }
     pages[st.session_state["page"]]()
 
 if __name__ == "__main__":
