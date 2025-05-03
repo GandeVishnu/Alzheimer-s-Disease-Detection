@@ -9,8 +9,15 @@ from fpdf import FPDF
 import base64
 import time
 from datetime import datetime, timezone
+import pytz
 from pymongo import MongoClient
 from io import BytesIO
+
+
+# Replace 'Asia/Kolkata' with your correct timezone if needed
+india_timezone = pytz.timezone('Asia/Kolkata')
+current_time = datetime.now(india_timezone)
+formatted_time = current_time.strftime("%d-%m-%Y %H:%M:%S")
 
 # -------------------- MongoDB Setup --------------------
 MONGO_URL = st.secrets.get("MONGO_URL")  # Fallback to Streamlit secrets for deployment
@@ -388,7 +395,7 @@ def application_form_page():
                 "prediction": prediction_label,
                 "confidence": float(prediction_confidence),
                 "image_base64": encode_image(uploaded_image),
-                "submitted_at": datetime.now().replace(microsecond=0)
+                "submitted_at": current_time
             }
             save_application_form(form_data)
             st.success("Application form and scan successfully saved!")
@@ -433,7 +440,7 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
     pdf.ln(10)
 
     # Adding Date and Time
-    current_datetime = datetime.now(timezone.utc).strftime("%d-%m-%Y %H:%M:%S UTC")
+    pdf.cell(200, 10, txt=f"Report Generated: {formatted_time}", ln=True)
     pdf.set_font("Arial", "I", 10)
     pdf.cell(0, 10, f"Report Generated: {current_datetime}", ln=True)
     pdf.ln(10)
