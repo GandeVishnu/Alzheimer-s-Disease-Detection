@@ -442,18 +442,6 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
     india_timezone = pytz.timezone('Asia/Kolkata')
     current_datetime = datetime.now(india_timezone).strftime("%d-%m-%Y %H:%M:%S")
     
-    # Sanitize the patient name to make a safe filename
-    safe_name = re.sub(r'[^a-zA-Z0-9_]', '', name.replace(' ', '_'))
-    pdf_filename = f"{safe_name}.pdf"
-
-    # Directory to save PDFs
-    output_dir = "pdf_reports"
-    os.makedirs(output_dir, exist_ok=True)
-
-    # Full path for PDF file
-    pdf_path = os.path.join(output_dir, pdf_filename)
-
-    
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
@@ -462,9 +450,6 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
     pdf.cell(200, 10, "Alzheimer's MRI Scan Report", ln=True, align="C")
     pdf.ln(10)
 
-    # Adding Date and Time
-    pdf.cell(200, 10, txt=f"Report Generated: {current_datetime}", ln=True)
-    pdf.set_font("Arial", "I", 10)
     pdf.cell(0, 10, f"Report Generated: {current_datetime}", ln=True)
     pdf.ln(10)
 
