@@ -378,6 +378,7 @@ def application_form_page():
 
     if st.button("📥 Download Report"):
         if name and age and place and phone_number:
+            submission_time = datetime.now(timezone.utc).replace(microsecond=0)
             form_data = {
                 "user_email": st.session_state.get("Email", ""),
                 "name": name,
