@@ -440,9 +440,8 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
     pdf.ln(10)
 
     # Adding Date and Time
-    pdf.cell(200, 10, txt=f"Report Generated: {formatted_time}", ln=True)
     pdf.set_font("Arial", "I", 10)
-    pdf.cell(0, 10, f"Report Generated: {current_datetime}", ln=True)
+    pdf.cell(0, 10, f"Report Generated: {formatted_datetime}", ln=True)
     pdf.ln(10)
 
     pdf.set_font("Arial", "B", 12)
