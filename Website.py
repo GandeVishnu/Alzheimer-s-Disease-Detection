@@ -440,7 +440,8 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
 
     # Get current time in India timezone
     india_timezone = pytz.timezone('Asia/Kolkata')
-    current_datetime = datetime.now(india_timezone).strftime("%d-%m-%Y %H:%M:%S")
+    current_time = datetime.now(india_timezone)
+    formatted_datetime = current_time.strftime("%d-%m-%Y %H:%M:%S")
     
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
