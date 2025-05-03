@@ -14,10 +14,6 @@ from pymongo import MongoClient
 from io import BytesIO
 import re
 
-# Replace 'Asia/Kolkata' with your correct timezone if needed
-india_timezone = pytz.timezone('Asia/Kolkata')
-current_time = datetime.now(india_timezone)
-formatted_time = current_time.strftime("%d-%m-%Y %H:%M:%S")
 
 # -------------------- MongoDB Setup --------------------
 MONGO_URL = st.secrets.get("MONGO_URL")  # Fallback to Streamlit secrets for deployment
