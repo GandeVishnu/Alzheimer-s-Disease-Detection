@@ -151,7 +151,6 @@ def add_responsive_styles():
                 padding: 10px;
                 font-size: 14px;
                 color: #888;
-                border-top: 1px solid #eaeaea;
             }}
         </style>
         <div class="footer">
