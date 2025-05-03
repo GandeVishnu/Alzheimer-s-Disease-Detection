@@ -12,7 +12,6 @@ from datetime import datetime, timezone
 import pytz
 from pymongo import MongoClient
 from io import BytesIO
-import re
 
 
 # -------------------- MongoDB Setup --------------------
