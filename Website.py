@@ -90,10 +90,12 @@ def add_responsive_styles():
                 caret-color: #000 !important;
                 color: #000 !important;
             }} 
-            /* Set the background color and padding for content */
+            /* Set the background color */
             .stApp {{
                 background-color: {bg_color} !important;
-                padding-bottom: 40px;
+            }}
+            .main-content {{
+                padding-bottom: 30px;
             }}
             input[type="text"], input[type="password"], textarea {{
                 background-color: white !important;  /* White background */
@@ -104,19 +106,19 @@ def add_responsive_styles():
                 font-size: 16px !important;
             }}
             .title-text {{
-                font-size: 50px;
+                font-size: 40px;
                 font-weight: bold;
                 color: DodgerBlue;
                 text-align: center;
                 text-transform: uppercase;
                 letter-spacing: 3px;
-                margin-top: 30px;
+                margin-top: 15px;
             }}
             .subtitle-text {{
-                font-size: 25px;
+                font-size: 20px;
                 text-align: center;
                 color: Tomato;
-                margin-bottom: 20px;
+                margin-bottom: 10px;
             }}
             div.stButton > button {{
                 width: 100%;
@@ -133,173 +135,185 @@ def add_responsive_styles():
                 transition: 0.3s ease;
             }}
             .footer {{
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
                 background-color: #A8D5E3;
                 text-align: center;
                 padding: 10px;
                 font-size: 14px;
                 color: #888;
-                z-index: 1000;
             }}
         </style>
-        <div class="footer">
-            © 2025 alzheimers-disease-detection
-        </div>
     """, unsafe_allow_html=True)
 
 def home_page():
     add_responsive_styles()
-    st.markdown('<div class="title-text">🧠 Alzheimer\'s Disease Prediction</div>', unsafe_allow_html=True)
-    st.markdown('<div class="subtitle-text">Analyze brain MRI scans to predict Alzheimer\'s disease stages using advanced deep learning models.</div>', unsafe_allow_html=True)
-        
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Login"):
-            st.session_state["page"] = "Login"
-            st.toast("✅ Moving to Login Page", icon="✅")   
-            time.sleep(0.5) 
-            st.rerun()
-    with col2:
-        if st.button("Signup"):
-            st.session_state["page"] = "Signup"
-            st.toast("✅ Moving to Signup Page", icon="✅")  
-            time.sleep(0.5)                   
-            st.rerun()
+    with st.container():
+        st.markdown('<div class="main-content">', unsafe_allow_html=True)
+        st.markdown('<div class="title-text">🧠 Alzheimer\'s Disease Prediction</div>', unsafe_allow_html=True)
+        st.markdown('<div class="subtitle-text">Analyze brain MRI scans to predict Alzheimer\'s disease stages using advanced deep learning models.</div>', unsafe_allow_html=True)
+            
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Login"):
+                st.session_state["page"] = "Login"
+                st.toast("✅ Moving to Login Page", icon="✅")   
+                time.sleep(0.5) 
+                st.rerun()
+        with col2:
+            if st.button("Signup"):
+                st.session_state["page"] = "Signup"
+                st.toast("✅ Moving to Signup Page", icon="✅")  
+                time.sleep(0.5)                   
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="footer">© 2025 alzheimers-disease-detection</div>', unsafe_allow_html=True)
 
 def login_page():
     add_responsive_styles()
-    st.subheader("🔐 Login")
-    email = st.text_input("Email", key="login_email")
-    password = st.text_input("Password", type="password")  
-    users = load_users()
-    if st.button("Login"):
-        if email in users and users[email]["password"] == password:
-            st.toast("✅ Login Successful! Redirecting..", icon="✅")
-            time.sleep(0.5)  
-            st.session_state["Name"] = users[email]["name"]
-            st.session_state["Email"] = email
-            st.session_state["page"] = "guidelines"
+    with st.container():
+        st.markdown('<div class="main-content">', unsafe_allow_html=True)
+        st.subheader("🔐 Login")
+        email = st.text_input("Email", key="login_email")
+        password = st.text_input("Password", type="password")  
+        users = load_users()
+        if st.button("Login"):
+            if email in users and users[email]["password"] == password:
+                st.toast("✅ Login Successful! Redirecting..", icon="✅")
+                time.sleep(0.5)  
+                st.session_state["Name"] = users[email]["name"]
+                st.session_state["Email"] = email
+                st.session_state["page"] = "guidelines"
+                st.rerun()
+            else:
+                st.error("Invalid email or password.")
+        
+        if st.button("Back to Home"):
+            st.session_state["page"] = "Home"
+            st.toast("✅ Back to Home Page", icon="✅")
+            time.sleep(0.5)
             st.rerun()
-        else:
-            st.error("Invalid email or password.")
-    
-    if st.button("Back to Home"):
-        st.session_state["page"] = "Home"
-        st.toast("✅ Back to Home Page", icon="✅")
-        time.sleep(0.5)
-        st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="footer">© 2025 alzheimers-disease-detection</div>', unsafe_allow_html=True)
 
 def signup_page():
     add_responsive_styles()
-    st.subheader("📝 Signup")
-    name = st.text_input("Name", key="signup_name")
-    email = st.text_input("Email", key="signup_email")
-    password = st.text_input("Password", type="password", key="signup_password")  
-    confirm_password = st.text_input("Re-enter Password", type="password", key="signup_confirm_password")
-    users = load_users()
-    
-    if st.button("Signup"):
-        # Validate name (non-empty string)
-        if not name or not name.strip():
-            st.error("Name cannot be empty.")
-        # Validate password (uppercase, lowercase, special character)
-        elif not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};:'\",.<>?]).+$", password):
-            st.error("Password must contain at least one uppercase letter, one lowercase letter, and one special character.")
-        # Validate re-enter password
-        elif password != confirm_password:
-            st.error("Passwords do not match!")
-        # Existing validations
-        elif not email:
-            st.error("Email is required.")
-        elif email in users:
-            st.error("User already exists!")
-        else:
-            save_user(email, name, password)
-            st.toast("✅ Signup Successful! Redirecting to Home...", icon="✅")
-            time.sleep(0.5)  
-            st.session_state["page"] = "Home"
-            st.rerun()
+    with st.container():
+        st.markdown('<div class="main-content">', unsafe_allow_html=True)
+        st.subheader("📝 Signup")
+        name = st.text_input("Name", key="signup_name")
+        email = st.text_input("Email", key="signup_email")
+        password = st.text_input("Password", type="password", key="signup_password")  
+        confirm_password = st.text_input("Re-enter Password", type="password", key="signup_confirm_password")
+        users = load_users()
+        
+        if st.button("Signup"):
+            # Validate name (non-empty string)
+            if not name or not name.strip():
+                st.error("Name cannot be empty.")
+            # Validate password (uppercase, lowercase, special character)
+            elif not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};:'\",.<>?]).+$", password):
+                st.error("Password must contain at least one uppercase letter, one lowercase letter, and one special character.")
+            # Validate re-enter password
+            elif password != confirm_password:
+                st.error("Passwords do not match!")
+            # Existing validations
+            elif not email:
+                st.error("Email is required.")
+            elif email in users:
+                st.error("User already exists!")
+            else:
+                save_user(email, name, password)
+                st.toast("✅ Signup Successful! Redirecting to Home...", icon="✅")
+                time.sleep(0.5)  
+                st.session_state["page"] = "Home"
+                st.rerun()
 
-    if st.button("Back to Home"):
-        st.session_state["page"] = "Home"
-        st.toast("✅ Back to Home Page", icon="✅")
-        time.sleep(0.5)  
-        st.rerun()
+        if st.button("Back to Home"):
+            st.session_state["page"] = "Home"
+            st.toast("✅ Back to Home Page", icon="✅")
+            time.sleep(0.5)  
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="footer">© 2025 alzheimers-disease-detection</div>', unsafe_allow_html=True)
 
 def guidelines_page():
     add_responsive_styles()
-    st.markdown(f"<h1 style='color: DodgerBlue;'>Welcome, {st.session_state.get('Name', 'User')}!</h1>", unsafe_allow_html=True)
-    st.markdown("""
-        <h2 style="color: Tomato;">📋 What is Alzheimer's Disease?</h2>
-    <p style="color: black;">Alzheimer's disease is a progressive brain disorder causing memory loss and cognitive decline.</p>
-    <ul>
-        <li><span style="color:#0B3D91; font-weight:bold;">Final CN JPEG:</span> 
-            <span style="color:#000000;">Cognitively Normal – No cognitive impairment.</span>
-        </li>
-        <li><span style="color:#0B3D91; font-weight:bold;">Final EMCI JPEG:</span> 
-            <span style="color:#000000;">Early Mild Cognitive Impairment – Very mild symptoms, subtle memory lapses.</span>
-        </li>
-        <li><span style="color:#0B3D91; font-weight:bold;">Final MCI JPEG:</span> 
-            <span style="color:#000000;">Mild Cognitive Impairment – General MCI, includes both early and late stages.</span>
-        </li>
-        <li><span style="color:#0B3D91; font-weight:bold;">Final LMCI JPEG:</span> 
-            <span style="color:#000000;">Late Mild Cognitive Impairment – More severe than EMCI, close to AD onset.</span>
-        </li>
-        <li><span style="color:#0B3D91; font-weight:bold;">Final AD JPEG:</span> 
-            <span style="color:#000000;">Alzheimer’s Disease – Advanced cognitive decline, significant memory and behavioral changes.</span>
-        </li>        
-    </ul>
-    """, unsafe_allow_html=True)
-    col1, col2= st.columns([1,1])
-    with col1:
-        if st.button("Proceed to Scan"):
-            st.session_state["page"] = "scan"
-            st.toast("✅ Redirecting to Scan Page...", icon="✅")
-            time.sleep(0.5)         
-            st.rerun()
-    with col2:
-        if st.button("Previous Scan"):
-            st.session_state["page"] = "previous_scan"
-            st.toast("✅ Redirecting to Previous Scan Page...", icon="✅")
-            time.sleep(0.5)         
-            st.rerun()
+    with st.container():
+        st.markdown('<div class="main-content">', unsafe_allow_html=True)
+        st.markdown(f"<h1 style='color: DodgerBlue; margin-top: 10px; margin-bottom: 10px;'>Welcome, {st.session_state.get('Name', 'User')}!</h1>", unsafe_allow_html=True)
+        st.markdown("""
+            <h2 style="color: Tomato; margin-top: 5px; margin-bottom: 5px;">📋 What is Alzheimer's Disease?</h2>
+            <p style="color: black; margin-top: 5px; margin-bottom: 5px;">Alzheimer's disease is a progressive brain disorder causing memory loss and cognitive decline.</p>
+            <ul style="margin-top: 5px; margin-bottom: 5px;">
+                <li><span style="color:#0B3D91; font-weight:bold;">Final CN JPEG:</span> 
+                    <span style="color:#000000;">Cognitively Normal – No cognitive impairment.</span>
+                </li>
+                <li><span style="color:#0B3D91; font-weight:bold;">Final EMCI JPEG:</span> 
+                    <span style="color:#000000;">Early Mild Cognitive Impairment – Very mild symptoms, subtle memory lapses.</span>
+                </li>
+                <li><span style="color:#0B3D91; font-weight:bold;">Final MCI JPEG:</span> 
+                    <span style="color:#000000;">Mild Cognitive Impairment – General MCI, includes both early and late stages.</span>
+                </li>
+                <li><span style="color:#0B3D91; font-weight:bold;">Final LMCI JPEG:</span> 
+                    <span style="color:#000000;">Late Mild Cognitive Impairment – More severe than EMCI, close to AD onset.</span>
+                </li>
+                <li><span style="color:#0B3D91; font-weight:bold;">Final AD JPEG:</span> 
+                    <span style="color:#000000;">Alzheimer’s Disease – Advanced cognitive decline, significant memory and behavioral changes.</span>
+                </li>        
+            </ul>
+        """, unsafe_allow_html=True)
+        col1, col2 = st.columns([1,1])
+        with col1:
+            if st.button("Proceed to Scan"):
+                st.session_state["page"] = "scan"
+                st.toast("✅ Redirecting to Scan Page...", icon="✅")
+                time.sleep(0.5)         
+                st.rerun()
+        with col2:
+            if st.button("Previous Scan"):
+                st.session_state["page"] = "previous_scan"
+                st.toast("✅ Redirecting to Previous Scan Page...", icon="✅")
+                time.sleep(0.5)         
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="footer">© 2025 alzheimers-disease-detection</div>', unsafe_allow_html=True)
 
 def scan_page():
     add_responsive_styles()
-    st.title(f"📊 Alzheimer’s MRI Scan")
-    uploaded_file = st.file_uploader("Upload Brain MRI Image", type=['jpg', 'jpeg', 'png'])
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-        st.image(image, caption='Uploaded Image', use_container_width=True)
-        predicted_label, confidence, predictions = predict(image)
-        st.markdown(f"### 🟢 Prediction: {predicted_label}")
-        st.markdown(f"### 📊 Confidence: {confidence:.2f}%")
-        st.session_state["uploaded_image"] = image
-        st.session_state["prediction_label"] = predicted_label
-        st.session_state["prediction_confidence"] = confidence
-        
-    col1, col2, col3 = st.columns([1,1,1])
-    with col1:
-        if st.button("⬅ Back"):
-            st.session_state["page"] = "guidelines"
-            st.toast("✅ Back to Guidelines Page...", icon="✅")
-            time.sleep(0.5)  
-            st.rerun()
-    with col2:
-        if st.button("📄 View Application Form"):
-            st.session_state["page"] = "application_form"  
-            st.toast("✅ Redirecting to Application Page...", icon="✅")   
-            time.sleep(0.5)   
-            st.rerun()
-    with col3:
-        if st.button("🚪 Sign Out"):
-            st.session_state["page"] = "Home"
-            st.toast("✅ Back to Home Page...", icon="✅")    
-            time.sleep(0.5)          
-            st.rerun()
+    with st.container():
+        st.markdown('<div class="main-content">', unsafe_allow_html=True)
+        st.title(f"📊 Alzheimer’s MRI Scan")
+        uploaded_file = st.file_uploader("Upload Brain MRI Image", type=['jpg', 'jpeg', 'png'])
+        if uploaded_file is not None:
+            image = Image.open(uploaded_file)
+            st.image(image, caption='Uploaded Image', use_container_width=True)
+            predicted_label, confidence, predictions = predict(image)
+            st.markdown(f"### 🟢 Prediction: {predicted_label}")
+            st.markdown(f"### 📊 Confidence: {confidence:.2f}%")
+            st.session_state["uploaded_image"] = image
+            st.session_state["prediction_label"] = predicted_label
+            st.session_state["prediction_confidence"] = confidence
+            
+        col1, col2, col3 = st.columns([1,1,1])
+        with col1:
+            if st.button("⬅ Back"):
+                st.session_state["page"] = "guidelines"
+                st.toast("✅ Back to Guidelines Page...", icon="✅")
+                time.sleep(0.5)  
+                st.rerun()
+        with col2:
+            if st.button("📄 View Application Form"):
+                st.session_state["page"] = "application_form"  
+                st.toast("✅ Redirecting to Application Page...", icon="✅")   
+                time.sleep(0.5)   
+                st.rerun()
+        with col3:
+            if st.button("🚪 Sign Out"):
+                st.session_state["page"] = "Home"
+                st.toast("✅ Back to Home Page...", icon="✅")    
+                time.sleep(0.5)          
+                st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="footer">© 2025 alzheimers-disease-detection</div>', unsafe_allow_html=True)
 
 def get_previous_applications(email):
     applications = applications_collection.find({"user_email": email}).sort("submitted_at", -1)
@@ -307,108 +321,118 @@ def get_previous_applications(email):
 
 def previous_scan_page():
     add_responsive_styles()
-    st.title("📜 Previous Scan Details")
-    email = st.session_state.get("Email", "")
-    if not email:
-        st.error("Please log in to view previous scans.")
+    with st.container():
+        st.markdown('<div class="main-content">', unsafe_allow_html=True)
+        st.title("📜 Previous Scan Details")
+        email = st.session_state.get("Email", "")
+        if not email:
+            st.error("Please log in to view previous scans.")
+            if st.button("Back to Guidelines"):
+                st.session_state["page"] = "guidelines"
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('<div class="footer">© 2025 alzheimers-disease-detection</div>', unsafe_allow_html=True)
+            return
+        applications = get_previous_applications(email)
+        if applications:
+            for idx, application in enumerate(applications, 1):
+                submitted_at = application.get("submitted_at")
+                if submitted_at:
+                    try:
+                        user_timezone = pytz.timezone("Asia/Kolkata")
+                        submitted_at = submitted_at.astimezone(user_timezone)
+                        submitted_str = submitted_at.strftime("%d-%m-%Y %I:%M %p")
+                    except Exception:
+                        submitted_str = str(submitted_at)
+                else:
+                    submitted_str = "N/A"
+                st.markdown(f"### Scan {idx} - Submitted: {submitted_str}")
+                st.write(f"**Name:** {application.get('name', 'N/A')}")
+                st.write(f"**Age:** {application.get('age', 'N/A')}")
+                st.write(f"**Place:** {application.get('place', 'N/A')}")
+                st.write(f"**Phone Number:** {application.get('phone_number', 'N/A')}")
+                st.write(f"**Prediction:** {application.get('prediction', 'N/A')}")
+                st.write(f"**Confidence:** {application.get('confidence', 0.0):.2f}%")
+                if "image_base64" in application and application["image_base64"]:
+                    try:
+                        st.subheader(f"MRI Scan {idx}:")
+                        image = decode_image(application["image_base64"])
+                        st.image(image, caption=f"MRI Image - Scan {idx}", use_container_width=True)
+                    except Exception as e:
+                        st.error(f"Error displaying image for scan {idx}: {str(e)}")
+                else:
+                    st.info(f"No MRI image available for scan {idx}.")
+                st.markdown("---")
+        else:
+            st.info("No previous scans found.")
         if st.button("Back to Guidelines"):
             st.session_state["page"] = "guidelines"
+            st.toast("✅ Back to Guidelines Page...", icon="✅")
+            time.sleep(0.5)
             st.rerun()
-        return
-    applications = get_previous_applications(email)
-    if applications:
-        for idx, application in enumerate(applications, 1):
-            submitted_at = application.get("submitted_at")
-            if submitted_at:
-                try:
-                    user_timezone = pytz.timezone("Asia/Kolkata")
-                    submitted_at = submitted_at.astimezone(user_timezone)
-                    submitted_str = submitted_at.strftime("%d-%m-%Y %I:%M %p")
-                except Exception:
-                    submitted_str = str(submitted_at)
-            else:
-                submitted_str = "N/A"
-            st.markdown(f"### Scan {idx} - Submitted: {submitted_str}")
-            st.write(f"**Name:** {application.get('name', 'N/A')}")
-            st.write(f"**Age:** {application.get('age', 'N/A')}")
-            st.write(f"**Place:** {application.get('place', 'N/A')}")
-            st.write(f"**Phone Number:** {application.get('phone_number', 'N/A')}")
-            st.write(f"**Prediction:** {application.get('prediction', 'N/A')}")
-            st.write(f"**Confidence:** {application.get('confidence', 0.0):.2f}%")
-            if "image_base64" in application and application["image_base64"]:
-                try:
-                    st.subheader(f"MRI Scan {idx}:")
-                    image = decode_image(application["image_base64"])
-                    st.image(image, caption=f"MRI Image - Scan {idx}", use_container_width=True)
-                except Exception as e:
-                    st.error(f"Error displaying image for scan {idx}: {str(e)}")
-            else:
-                st.info(f"No MRI image available for scan {idx}.")
-            st.markdown("---")
-    else:
-        st.info("No previous scans found.")
-    if st.button("Back to Guidelines"):
-        st.session_state["page"] = "guidelines"
-        st.toast("✅ Back to Guidelines Page...", icon="✅")
-        time.sleep(0.5)
-        st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="footer">© 2025 alzheimers-disease-detection</div>', unsafe_allow_html=True)
 
 def application_form_page():
     add_responsive_styles()
-    st.title("📝 Application Form")
-    name = st.text_input("Name")
-    age = st.text_input("Age")
-    place = st.text_input("Place")
-    phone_number = st.text_input("Phone Number")
-    uploaded_image = st.session_state.get("uploaded_image", None)
-    prediction_label = st.session_state.get("prediction_label", "N/A")
-    prediction_confidence = st.session_state.get("prediction_confidence", 0.0)
-    if uploaded_image:
-        st.subheader("Uploaded MRI Scan:")
-        st.image(uploaded_image, caption="MRI Image", use_container_width=True)
-        st.subheader("Diagnosis Result:")
-        st.write(f"🟢 **Prediction:** {prediction_label}")
-        st.write(f"📊 **Confidence:** {prediction_confidence:.2f}%")
-    if st.button("📥 Download Report"):
-        # Validate fields
-        if not name or not name.strip():
-            st.error("Name cannot be empty.")
-        elif not age or not age.isdigit():
-            st.error("Age must be a valid integer.")
-        elif not place or not place.strip():
-            st.error("Place cannot be empty.")
-        elif not phone_number or not re.match(r"^\d{10}$", phone_number):
-            st.error("Phone number must be exactly 10 digits.")
-        else:
-            submission_time = datetime.now(pytz.timezone("Asia/Kolkata"))
-            form_data = {
-                "user_email": st.session_state.get("Email", ""),
-                "name": name,
-                "age": int(age),  # Convert to integer
-                "place": place,
-                "phone_number": phone_number,
-                "prediction": prediction_label,
-                "confidence": float(prediction_confidence),
-                "image_base64": encode_image(uploaded_image) if uploaded_image else None,
-                "submitted_at": submission_time
-            }
-            save_application_form(form_data)
-            st.success("Application form and scan successfully saved!")
-            temp_image_path = "temp_mri_image.jpg"
-            uploaded_image.save(temp_image_path)
-            pdf_path = generate_pdf(name, age, place, phone_number, temp_image_path, prediction_label, prediction_confidence)
-            with open(pdf_path, "rb") as pdf_file:
-                st.download_button(
-                    label="📥 Download Report",
-                    data=pdf_file,
-                    file_name="Alzheimer_MRI_Report.pdf",
-                    mime="application/pdf"
-                )
-    if st.button("🔁 Guidelines Page"):
-        st.session_state["page"] = "guidelines"
-        st.toast("✅ Back to Guidelines Page...", icon="✅")
-        time.sleep(0.5)
-        st.rerun()
+    with st.container():
+        st.markdown('<div class="main-content">', unsafe_allow_html=True)
+        st.title("📝 Application Form")
+        name = st.text_input("Name")
+        age = st.text_input("Age")
+        place = st.text_input("Place")
+        phone_number = st.text_input("Phone Number")
+        uploaded_image = st.session_state.get("uploaded_image", None)
+        prediction_label = st.session_state.get("prediction_label", "N/A")
+        prediction_confidence = st.session_state.get("prediction_confidence", 0.0)
+        if uploaded_image:
+            st.subheader("Uploaded MRI Scan:")
+            st.image(uploaded_image, caption="MRI Image", use_container_width=True)
+            st.subheader("Diagnosis Result:")
+            st.write(f"🟢 **Prediction:** {prediction_label}")
+            st.write(f"📊 **Confidence:** {prediction_confidence:.2f}%")
+        if st.button("📥 Download Report"):
+            # Validate fields
+            if not name or not name.strip():
+                st.error("Name cannot be empty.")
+            elif not age or not age.isdigit():
+                st.error("Age must be a valid integer.")
+            elif not place or not place.strip():
+                st.error("Place cannot be empty.")
+            elif not phone_number or not re.match(r"^\d{10}$", phone_number):
+                st.error("Phone number must be exactly 10 digits.")
+            else:
+                submission_time = datetime.now(pytz.timezone("Asia/Kolkata"))
+                form_data = {
+                    "user_email": st.session_state.get("Email", ""),
+                    "name": name,
+                    "age": int(age),  # Convert to integer
+                    "place": place,
+                    "phone_number": phone_number,
+                    "prediction": prediction_label,
+                    "confidence": float(prediction_confidence),
+                    "image_base64": encode_image(uploaded_image) if uploaded_image else None,
+                    "submitted_at": submission_time
+                }
+                save_application_form(form_data)
+                st.success("Application form and scan successfully saved!")
+                temp_image_path = "temp_mri_image.jpg"
+                uploaded_image.save(temp_image_path)
+                pdf_path = generate_pdf(name, age, place, phone_number, temp_image_path, prediction_label, prediction_confidence)
+                with open(pdf_path, "rb") as pdf_file:
+                    st.download_button(
+                        label="📥 Download Report",
+                        data=pdf_file,
+                        file_name="Alzheimer_MRI_Report.pdf",
+                        mime="application/pdf"
+                    )
+        if st.button("🔁 Guidelines Page"):
+            st.session_state["page"] = "guidelines"
+            st.toast("✅ Back to Guidelines Page...", icon="✅")
+            time.sleep(0.5)
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="footer">© 2025 alzheimers-disease-detection</div>', unsafe_allow_html=True)
 
 def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confidence):
     india_timezone = pytz.timezone('Asia/Kolkata')
