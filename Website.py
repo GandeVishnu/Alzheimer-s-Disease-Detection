@@ -95,7 +95,7 @@ def add_responsive_styles():
                 background-color: {bg_color} !important;
             }}
             .main-content {{
-                padding-bottom: 60px;
+                padding-bottom: 30px;
             }}
             input[type="text"], input[type="password"], textarea {{
                 background-color: white !important;  /* White background */
