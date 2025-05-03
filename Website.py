@@ -135,15 +135,16 @@ def add_responsive_styles():
                 transition: 0.3s ease;
             }}
             .footer {{
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                background-color: #A8D5E3;
-                text-align: center;
-                padding: 15px;
-                font-size: 14px;
-                color: #888;
+                position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #A8D5E3;
+    text-align: center;
+    padding: 12px;
+    font-size: 14px;
+    color: #888;
+    z-index: 999;
             }}
         </style>
     """, unsafe_allow_html=True)
