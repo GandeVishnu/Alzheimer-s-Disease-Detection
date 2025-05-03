@@ -136,15 +136,15 @@ def add_responsive_styles():
             }}
             .footer {{
                 position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: #A8D5E3;
-    text-align: center;
-    padding: 12px;
-    font-size: 14px;
-    color: #888;
-    z-index: 999;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                background-color: #A8D5E3;
+                text-align: center;
+                padding: 12px;
+                font-size: 14px;
+                color: #888;
+                z-index: 999;
             }}
         </style>
     """, unsafe_allow_html=True)
@@ -243,8 +243,8 @@ def signup_page():
 def guidelines_page():
     add_responsive_styles()
     with st.container():
-        st.title('<div class="main-content">', unsafe_allow_html=True)
-        st.title(f"<h1 style='color: DodgerBlue; margin-top: 10px; margin-bottom: 10px;'>Welcome, {st.session_state.get('Name', 'User')}!</h1>", unsafe_allow_html=True)
+        st.markdown('<div class="main-content">', unsafe_allow_html=True)
+        st.markdown(f"<h1 style='color: DodgerBlue; content:center; margin-top: 10px; margin-bottom: 10px;'>Welcome, {st.session_state.get('Name', 'User')}!</h1>", unsafe_allow_html=True)
         st.markdown("""
             <h2 style="color: Tomato; margin-top: 5px; margin-bottom: 5px;">📋 What is Alzheimer's Disease?</h2>
             <p style="color: black; margin-top: 5px; margin-bottom: 5px;">Alzheimer's disease is a progressive brain disorder causing memory loss and cognitive decline.</p>
