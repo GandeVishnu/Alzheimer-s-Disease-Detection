@@ -244,7 +244,7 @@ def guidelines_page():
     add_responsive_styles()
     with st.container():
         st.markdown('<div class="main-content">', unsafe_allow_html=True)
-        st.markdown(f"<h1 style='color: DodgerBlue; padding: 10px; font-size:38px'>Welcome, {st.session_state.get('Name', 'User')}!</h1>", unsafe_allow_html=True)
+        st.markdown(f"<h1 style='color: DodgerBlue; padding: 10px; font-size:35px'>Welcome, {st.session_state.get('Name', 'User')}!</h1>", unsafe_allow_html=True)
         st.markdown("""
             <h2 style="color: Tomato; padding: 5px;  font-size:30px;">📋 What is Alzheimer's Disease?</h2>
             <p style="color: black; margin-top: 5px; margin-bottom: 5px;">Alzheimer's disease is a progressive brain disorder causing memory loss and cognitive decline.</p>
