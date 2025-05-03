@@ -312,10 +312,7 @@ def scan_page():
 
 def get_previous_applications(email):
     applications = applications_collection.find({"user_email": email}).sort("submitted_at", -1)
-    for application in applications:
-        # Convert the datetime to a formatted string if needed
-        if isinstance(application["submitted_at"], datetime):
-            application["submitted_at"] = application["submitted_at"].strftime("%d-%m-%Y %H:%M:%S")
+    
     return list(applications)
             
 def previous_scan_page():
