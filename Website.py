@@ -444,7 +444,9 @@ def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confiden
 
     # Sanitize patient name for filename (replace spaces with underscores and remove non-alphanumeric)
     safe_name = re.sub(r'[^a-zA-Z0-9_]', '', name.replace(' ', '_'))
+    safe_name = safe_name.strip('_') 
     pdf_filename = f"{safe_name}_Report.pdf"
+
 
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
