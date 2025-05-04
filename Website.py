@@ -409,7 +409,9 @@ def application_form_page():
             elif not phone_number or not re.match(r"^\d{10}$", phone_number):
                 st.error("Phone number must be exactly 10 digits.")
             else:
-                submission_time = datetime.now(pytz.timezone("Asia/Kolkata"))
+                india_timezone = pytz.timezone('Asia/Kolkata')
+                current_time = datetime.now(india_timezone)
+                formatted_datetime = current_time.strftime("%d-%m-%Y %H:%M:%S")
                 form_data = {
                     "user_email": st.session_state.get("Email", ""),
                     "name": name,
@@ -419,7 +421,7 @@ def application_form_page():
                     "prediction": prediction_label,
                     "confidence": float(prediction_confidence),
                     "image_base64": encode_image(uploaded_image) if uploaded_image else None,
-                    "submitted_at": submission_time
+                    "submitted_at": formatted_datetime
                 }
                 save_application_form(form_data)
                 st.success("Application form and scan successfully saved!")
