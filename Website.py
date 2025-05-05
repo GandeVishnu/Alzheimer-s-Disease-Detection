@@ -14,14 +14,14 @@ from io import BytesIO
 import re
 import os
 # -------------------- MongoDB Setup --------------------
-MONGO_URL = st.secrets.get("MONGO_URL")  # Fallback to Streamlit secrets for deployment
+MONGO_URL = st.secrets.get("MONGO_URL")  
 if not MONGO_URL:
     st.error("MongoDB URL not found. Please set MONGO_URL in .env or Streamlit secrets.")
     st.stop()
 client = MongoClient(MONGO_URL)
-db = client["AlzheimersDiseaseDetection"]    # Database
-users_collection = db["users"]   # Users collection
-applications_collection = db["applications"]   # Application form collection
+db = client["AlzheimersDiseaseDetection"]    
+users_collection = db["users"]   
+applications_collection = db["applications"]  
 #----
 page_title="Alzheimers Disease Detection"
 page_icon="🧠"
