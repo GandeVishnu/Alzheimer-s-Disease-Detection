@@ -36,6 +36,7 @@ def load_prediction_model():
 
 model = load_prediction_model()
 
+# -------------------- Image Processing --------------------
 def preprocess_image(image):
     image = image.convert('RGB')
     image = image.resize(IMG_SIZE)
@@ -75,12 +76,9 @@ def load_users():
 def save_application_form(data):
     applications_collection.insert_one(data)
 
-def previous_scan_page(email):
-    application = applications_collection.find_one(
-        {"user_email": email},
-        sort=[("submitted_at", -1)]  # Sort by submitted_at in descending order to get the most recent
-    )
-    return application    
+def get_previous_applications(email):
+    applications = applications_collection.find({"user_email": email}).sort("submitted_at", -1)
+    return list(applications)
 
 # -------------------- Styling --------------------
 def add_responsive_styles():
@@ -210,7 +208,7 @@ def scan_page():
         uploaded_file = st.file_uploader("Upload Brain MRI Image", type=['jpg', 'jpeg', 'png'])
         if uploaded_file is not None:
             image = Image.open(uploaded_file)
-            st.image(image, caption='Uploaded Image', use_container_width=True)
+            st.image(image, caption='Uploaded Image', use_column_width=True)
             predicted_label, confidence, predictions = predict(image)
             st.markdown(f"### 🟢 Prediction: {predicted_label}")
             st.markdown(f"### 📊 Confidence: {confidence:.2f}%")
@@ -278,7 +276,7 @@ def previous_scan_page():
                     try:
                         st.subheader(f"MRI Scan {idx}:")
                         image = decode_image(application["image_base64"])
-                        st.image(image, caption=f"MRI Image - Scan {idx}", use_container_width =True)
+                        st.image(image, caption=f"MRI Image - Scan {idx}", use_column_width=True)
                     except Exception as e:
                         st.error(f"Error displaying image for scan {idx}: {str(e)}")
                 else:
@@ -299,7 +297,7 @@ def application_form_page():
         st.markdown('<div class="main-content">', unsafe_allow_html=True)
         st.title("📝 Application Form")
         name = st.text_input("Name")
-        age = st.text_input("Age")
+        age = st.number_input("Age", min_value=0, step=1)
         place = st.text_input("Place")
         phone_number = st.text_input("Phone Number")
         uploaded_image = st.session_state.get("uploaded_image", None)
@@ -307,7 +305,7 @@ def application_form_page():
         prediction_confidence = st.session_state.get("prediction_confidence", 0.0)
         if uploaded_image:
             st.subheader("Uploaded MRI Scan:")
-            st.image(uploaded_image, caption="MRI Image", use_container_width =True)
+            st.image(uploaded_image, caption="MRI Image", use_column_width=True)
             st.subheader("Diagnosis Result:")
             st.write(f"🟢 **Prediction:** {prediction_label}")
             st.write(f"📊 **Confidence:** {prediction_confidence:.2f}%")
@@ -315,8 +313,8 @@ def application_form_page():
             # Validate fields
             if not name or not name.strip():
                 st.error("Name cannot be empty.")
-            elif not age or not age.isdigit():
-                st.error("Age must be a valid integer.")
+            elif age < 0:
+                st.error("Age must be a non-negative integer.")
             elif not place or not place.strip():
                 st.error("Place cannot be empty.")
             elif not phone_number or not re.match(r"^\d{10}$", phone_number):
@@ -341,7 +339,7 @@ def application_form_page():
                         "name": name,
                         "age": int(age),
                         "place": place,
-                        "phone_number": phone_number,
+                        "phone_number": int(phone_number),
                         "prediction": prediction_label,
                         "confidence": float(prediction_confidence),
                         "image_base64": encode_image(uploaded_image) if uploaded_image else None,
@@ -388,6 +386,7 @@ def application_form_page():
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('<div class="footer">© 2025 alzheimers-disease-detection</div>', unsafe_allow_html=True)
+
 
 def generate_pdf(name, age, place, phone_number, image_path, diagnosis, confidence, pdf_filename, formatted_datetime):
     pdf = FPDF()
