@@ -75,7 +75,7 @@ def load_users():
 def save_application_form(data):
     applications_collection.insert_one(data)
 
-def get_previous_application(email):
+def previous_scan_page(email):
     application = applications_collection.find_one(
         {"user_email": email},
         sort=[("submitted_at", -1)]  # Sort by submitted_at in descending order to get the most recent
