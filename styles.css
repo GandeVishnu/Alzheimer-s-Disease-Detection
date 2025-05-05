@@ -1,6 +1,12 @@
 .stApp {
     background-color: #A8D5E3 !important;
 }
+div[data-testid="stTextInput"] input {
+    background-color: white !important;
+}
+div[data-testid="stNumberInput"] input {
+    background-color: white !important;
+}
 input, textarea {
     caret-color: #000 !important;
     color: #000 !important;
