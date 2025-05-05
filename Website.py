@@ -328,9 +328,9 @@ def get_previous_applications(email):
 
 def previous_scan_page():
     add_responsive_styles()
+    st.markdown('<div class="main-content">', unsafe_allow_html=True)
     with st.container():
-        st.markdown('<div class="main-content">', unsafe_allow_html=True)
-        st.markdown("📜 Previous Scan Details")
+        st.title("📜 Previous Scan Details")
         email = st.session_state.get("Email", "")
         if not email:
             st.error("Please log in to view previous scans.")
