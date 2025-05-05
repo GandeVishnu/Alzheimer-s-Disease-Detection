@@ -210,7 +210,7 @@ def scan_page():
         uploaded_file = st.file_uploader("Upload Brain MRI Image", type=['jpg', 'jpeg', 'png'])
         if uploaded_file is not None:
             image = Image.open(uploaded_file)
-            st.image(image, caption='Uploaded Image', use_column_width=True)
+            st.image(image, caption='Uploaded Image', use_container_width=True)
             predicted_label, confidence, predictions = predict(image)
             st.markdown(f"### 🟢 Prediction: {predicted_label}")
             st.markdown(f"### 📊 Confidence: {confidence:.2f}%")
@@ -278,7 +278,7 @@ def previous_scan_page():
                     try:
                         st.subheader(f"MRI Scan {idx}:")
                         image = decode_image(application["image_base64"])
-                        st.image(image, caption=f"MRI Image - Scan {idx}", use_column_width=True)
+                        st.image(image, caption=f"MRI Image - Scan {idx}", use_container_width =True)
                     except Exception as e:
                         st.error(f"Error displaying image for scan {idx}: {str(e)}")
                 else:
@@ -307,7 +307,7 @@ def application_form_page():
         prediction_confidence = st.session_state.get("prediction_confidence", 0.0)
         if uploaded_image:
             st.subheader("Uploaded MRI Scan:")
-            st.image(uploaded_image, caption="MRI Image", use_column_width=True)
+            st.image(uploaded_image, caption="MRI Image", use_container_width =True)
             st.subheader("Diagnosis Result:")
             st.write(f"🟢 **Prediction:** {prediction_label}")
             st.write(f"📊 **Confidence:** {prediction_confidence:.2f}%")
