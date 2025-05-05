@@ -12,7 +12,7 @@ import pytz
 from pymongo import MongoClient
 from io import BytesIO
 import re
-
+import os
 # -------------------- MongoDB Setup --------------------
 MONGO_URL = st.secrets.get("MONGO_URL")  # Fallback to Streamlit secrets for deployment
 if not MONGO_URL:
