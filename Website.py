@@ -185,7 +185,7 @@ def guidelines_page():
                 <li><span class="label">Final AD JPEG:</span> <span class="description">Alzheimer’s Disease – Advanced cognitive decline, significant memory and behavioral changes.</span></li>
             </ul>
         """, unsafe_allow_html=True)
-        col1, col2 = st.columns([1,1])
+        col1, col2, col3 = st.columns([1,1,1])
         with col1:
             if st.button("Proceed to Scan"):
                 st.session_state["page"] = "scan"
@@ -198,6 +198,12 @@ def guidelines_page():
                 st.toast("✅ Redirecting to Previous Scan Page...", icon="✅")
                 time.sleep(0.5)
                 st.rerun()
+         with col3:
+            if st.button("🚪 Sign Out"):
+                st.session_state["page"] = "Home"
+                st.toast("✅ Back to Home Page...", icon="✅")
+                time.sleep(0.5)
+                st.rerun()        
         st.markdown('</div>', unsafe_allow_html=True)
     st.markdown('<div class="footer">© 2025 alzheimers-disease-detection</div>', unsafe_allow_html=True)
 
@@ -215,7 +221,7 @@ def scan_page():
             st.session_state["uploaded_image"] = image
             st.session_state["prediction_label"] = predicted_label
             st.session_state["prediction_confidence"] = confidence
-        col1, col2, col3 = st.columns([1,1,1])
+        col1, col2 = st.columns([1,1])
         with col1:
             if st.button("⬅ Back"):
                 st.session_state["page"] = "guidelines"
@@ -226,12 +232,6 @@ def scan_page():
             if st.button("📄 View Application Form"):
                 st.session_state["page"] = "application_form"
                 st.toast("✅ Redirecting to Application Page...", icon="✅")
-                time.sleep(0.5)
-                st.rerun()
-        with col3:
-            if st.button("🚪 Sign Out"):
-                st.session_state["page"] = "Home"
-                st.toast("✅ Back to Home Page...", icon="✅")
                 time.sleep(0.5)
                 st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
