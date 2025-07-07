@@ -198,7 +198,7 @@ def guidelines_page():
                 st.toast("✅ Redirecting to Previous Scan Page...", icon="✅")
                 time.sleep(0.5)
                 st.rerun()
-         with col3:
+        with col3:
             if st.button("🚪 Sign Out"):
                 st.session_state["page"] = "Home"
                 st.toast("✅ Back to Home Page...", icon="✅")
