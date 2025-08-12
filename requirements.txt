@@ -6,3 +6,9 @@ fpdf
 pymongo
 python-dotenv
 pytz
+tensorflow==2.17.0
+streamlit==1.38.0
+pillow==10.4.0
+numpy==1.26.4
+fpdf==1.7.2
+pymongo==4.8.0
